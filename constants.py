@@ -46,6 +46,7 @@ SPIELFELD_BLACK = (8,50,8)
 PLAYER_COLOR = (200,250,200)
 BALL_COLOR = (220,255,220)
 MAKIERUNGEN = (120,170,100)
+HINDERNIS_COLOR = (130,255,130)
 
 # finde passendste Schriftart zu arial.
 font_name = pygame.font.match_font('arial')

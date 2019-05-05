@@ -36,6 +36,13 @@ class Game():
         self.player0_wins = 0
         self.player1_wins = 0
 
+        # Erreichtes
+        self.schläge = 0  # Zählt hoch, wie oft der Ball von den Spielern zurückgeschossen wurde
+
+        # Debug gibt einige Prints aus und setzt an Abprallpunkte einen Sprite
+        self.debug = False
+        self.abprallort = None
+
     def set_spielfeldwerte(self):
         querkant = False
         if self.spielfeldbreite >= WIDTH * 5/7:
@@ -488,14 +495,12 @@ class Game():
     def show_game_info(self, surf, center_x,center_y = HEIGHT*3/5):
         if self.game_status == None:
             self.draw_text(surf, "PONG!", 64, center_x, HEIGHT / 6.5)
-        self.draw_text(surf, "Spieler 1", 30, center_x, center_y + 20)
-        self.draw_text(surf, "Spieler 2", 30, center_x, center_y + 100)
-        self.draw_text(surf, str(self.player0_wins), 30, center_x, center_y + 60)
-        self.draw_text(surf, str(self.player1_wins), 30, center_x, center_y + 140)
-        if not self.multiplayer:
-            self.draw_text(surf, "Runde: {}".format(self.spiel_num), 25, center_x, center_y - 70)
-        else:
-            self.draw_text(surf, "Runde: {}".format(self.spiel_num), 25, center_x, center_y - 30)
+        self.draw_text(surf, "Runde: {}".format(self.spiel_num), 25, center_x, center_y - 80)
+        self.draw_text(surf, "Spieler 1", 30, center_x, center_y - 30)
+        self.draw_text(surf, "Spieler 2", 30, center_x, center_y + 50)
+        self.draw_text(surf, str(self.player0_wins), 30, center_x, center_y + 10)
+        self.draw_text(surf, str(self.player1_wins), 30, center_x, center_y + 90)
+        self.draw_text(surf, "Schläge: "+str(self.schläge), 25, center_x, center_y + 150)
 
     def show_end_game_info(self, surf, center_x, y, gewonnener_spieler = None):
         if self.game_status == NEXT_GAME:
@@ -590,11 +595,17 @@ class Game():
             self.draw_display()
             self.all_sprites.draw(screen)
 
+            # Im Debug letzten Abprallort zeichnen
+            if self.debug and self.abprallort is not None:
+                pygame.draw.rect(screen, TEXT_RED, pygame.Rect(self.abprallort[0] - 3, self.abprallort[1] - 3, 7, 7))
+
             # Nachdem alles gezeichnet ist anzeigen
             pygame.display.flip()
 
     def new(self):
         self.all_sprites = pygame.sprite.LayeredUpdates()
+        self.alles_abprallende = pygame.sprite.Group()
+        self.hindernisse = pygame.sprite.Group()
 
         # neues Spielfeld
         self.set_spielfeldwerte()
@@ -607,6 +618,24 @@ class Game():
             self.player1 = Player(self, 1, is_computer=True)
         self.all_sprites.add(self.player0)
         self.all_sprites.add(self.player1)
+        self.alles_abprallende.add(self.player0)
+        self.alles_abprallende.add(self.player1)
+
+        # Wenn so eingestellt Hindernisse erzeugen
+        if self.with_hindernissen:
+            bisherige_x = []
+            while len(bisherige_x)/100 < 7:
+                x = random.randrange(int(self.spielfeldx + 100), int(self.spielfeldx+self.spielfeldbreite - 100))
+                y = random.randrange(int(self.spielfeldy + 100), int(self.spielfeldy+self.spielfeldhoehe - 100))
+                width = random.randrange(25,40)
+                height = random.randrange(25,40)
+                if x not in bisherige_x:
+                    hindernis = Hindernis(self,(x,y),(width,height))
+                    self.hindernisse.add(hindernis)
+                    self.all_sprites.add(hindernis)
+                    self.alles_abprallende.add(hindernis)
+                    for i in range (-50,50):
+                        bisherige_x.append(x + i)
 
         # Ball erstellen
         self.ball = Ball(self)
@@ -614,18 +643,38 @@ class Game():
 
         # Spielwerte zurücksetzten
         self.game_status = None
+        self.schläge = 0
+        self.abprallort = None
 
     def detect_and_react_collisions(self):
-        for player_num, player in enumerate([self.player0, self.player1]):
-            hit = pygame.sprite.collide_rect(player, self.ball)
+        # Überprüfen ob der Ball irgendwo abprallen soll
+        for hindernis in self.alles_abprallende:
+            hit = pygame.sprite.collide_rect(self.ball,hindernis)
             if hit:
-                abstand_von_der_mitte = player.rect.centery - self.ball.rect.centery
-                if player_num == 0:
-                    self.ball.pos.x = player.rect.right + 6
-                else:
-                    self.ball.pos.x = player.rect.left - 6
-                self.ball.vel = self.ball.vel.rotate(abstand_von_der_mitte)
-                self.ball.vel.x = - self.ball.vel.x
+                if self.debug: # Position des Abpralls für den Debug merken
+                    self.abprallort = self.ball.rect.center
+                if hindernis in [self.player0,self.player1]:
+                    self.schläge += 1
+                if self.ball.pos.y - self.ball.vel.y > hindernis.rect.bottom: # von unten dagegen
+                    self.ball.pos.y = hindernis.rect.bottom + 6
+                    self.ball.vel.y = -self.ball.vel.y
+                    if self.debug:
+                        print("von unten")
+                elif self.ball.pos.y - self.ball.vel.y < hindernis.rect.top: # von oben dagegen
+                    self.ball.pos.y = hindernis.rect.top - 6
+                    self.ball.vel.y = -self.ball.vel.y
+                    if self.debug:
+                        print("von oben")
+                if self.ball.pos.x - self.ball.vel.x < hindernis.rect.left: # von links dagegen
+                    self.ball.pos.x = hindernis.rect.left - 6
+                    self.ball.vel.x = -self.ball.vel.x
+                    if self.debug:
+                        print("von links")
+                elif self.ball.pos.x - self.ball.vel.x > hindernis.rect.right: # von rechts dagegen
+                    self.ball.pos.x = hindernis.rect.right + 6
+                    self.ball.vel.x = -self.ball.vel.x
+                    if self.debug:
+                        print("von rechts")
 
     def draw_display(self):
         # Bildschrim zeichnen
@@ -652,6 +701,7 @@ class Game():
 
     def make_game_end(self, gewonnener_spieler=None):
         self.game_status = NEXT_GAME
+        self.spiel_num += 1
         screen.blit(background, background_rect)
         if gewonnener_spieler == 0:
             self.player0_wins += 1
