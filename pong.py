@@ -624,7 +624,6 @@ class Game():
                     self.ball.pos.x = player.rect.right + 6
                 else:
                     self.ball.pos.x = player.rect.left - 6
-                self.ball.direction = (self.ball.direction + abstand_von_der_mitte) % 360
                 self.ball.vel = self.ball.vel.rotate(abstand_von_der_mitte)
                 self.ball.vel.x = - self.ball.vel.x
 

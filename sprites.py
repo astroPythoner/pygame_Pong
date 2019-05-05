@@ -52,24 +52,26 @@ class Ball(pygame.sprite.Sprite):
         if self.rect.top < self.game.spielfeldy + 8:
             self.rect.top = self.game.spielfeldy + 8
             self.vel.y = -self.vel.y
-            # Fliegt der Ball zu gerade nach oben dauert es ewig bis er ein Ziel erreicht. Daher wird er gedreht
-            if self.direction > 250 and self.direction < 270:
-                self.direction = (self.direction + 30) % 360
-                self.vel = self.vel.rotate(30)
-            if  self.direction < 290 and self.direction > 270:
-                self.direction = (self.direction - 30) % 360
-                self.vel = self.vel.rotate(-30)
+            # Fliegt der Ball zu gerade nach oben dauert es ewig bis er ein Ziel erreicht. Daher fliegt er zur Seite
+            if self.get_direction() == RIGHT and self.vel.x * 3 < self.vel.y:
+                self.vel = self.vel.rotate(-15)
+            elif self.get_direction() == LEFT and - (self.vel.x * 3) < self.vel.y:
+                self.vel = self.vel.rotate(15)
         if self.rect.bottom > self.game.spielfeldy + self.game.spielfeldhoehe - 7:
             self.rect.bottom = self.game.spielfeldy + self.game.spielfeldhoehe - 7
             self.vel.y = -self.vel.y
-            # Fliegt der Ball zu gerade nach unten dauert es ewig bis er ein Ziel erreicht. Daher wird er gedreht
-            if self.direction > 70 and self.direction < 90:
-                self.direction = (self.direction + 30) % 360
-                self.vel = self.vel.rotate(30)
-            if  self.direction < 110 and self.direction > 90:
-                self.direction = (self.direction - 30) % 360
-                self.vel = self.vel.rotate(-30)
+            # Fliegt der Ball zu gerade nach unten dauert es ewig bis er ein Ziel erreicht. Daher fliegt er zur Seite
+            if self.get_direction() == RIGHT and self.vel.x * 3 < -self.vel.y:
+                self.vel = self.vel.rotate(15)
+            elif self.get_direction() == LEFT and - (self.vel.x * 3) < -self.vel.y:
+                self.vel = self.vel.rotate(-15)
         if self.rect.left < self.game.spielfeldx:
             self.game.make_game_end(1)
         if self.rect.right > self.game.spielfeldx + self.game.spielfeldbreite:
             self.game.make_game_end(0)
+
+    def get_direction(self):
+        if self.vel.x < 0:
+            return LEFT
+        else:
+            return RIGHT
