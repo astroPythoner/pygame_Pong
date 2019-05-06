@@ -1,7 +1,6 @@
 import pygame
 from constants import *
 import random
-import time
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, game, player_num, is_computer = False):
@@ -20,8 +19,14 @@ class Player(pygame.sprite.Sprite):
         else:
             self.rect.right = self.game.spielfeldx + self.game.spielfeldbreite - 12
         self.rect.centery = HEIGHT/2
+        # Merken, wie oft der Spieler schon geschossen hat
+        self.schläge = 0
+        # Zeit und Status merken für die Power_ups
+        self.long_power_up_schläge = 0
+        self.is_long = False
 
     def update(self):
+        # Bewegen
         if self.is_computer:
             self.rect.centery = self.game.ball.rect.centery + 10
         else:
@@ -33,18 +38,48 @@ class Player(pygame.sprite.Sprite):
             self.rect.top = self.game.spielfeldy+8
         if self.rect.bottom > self.game.spielfeldy + self.game.spielfeldhoehe - 7:
             self.rect.bottom = self.game.spielfeldy + self.game.spielfeldhoehe - 7
+        # Nach ablauf der Powerup zeiten schauen und diese entsprechend abschalten, wenn die Zeit rum ist
+        if self.is_long and self.schläge - self.long_power_up_schläge > self.game.POWERUP_TIME:
+            self.end_long_power_up()
+
+    def start_long_power_up(self):
+        self.is_long = True
+        # PowerUp Zeit merken
+        self.long_power_up_schläge = self.schläge
+        gemerkte_pos = self.rect.center
+        # Rechteck
+        self.image = pygame.Surface((15, (self.game.spielfeldhoehe / 9) * 1.5))
+        self.image.fill(PLAYER_COLOR)
+        self.rect = self.image.get_rect()
+        # positionieren
+        self.rect.center = gemerkte_pos
+
+    def end_long_power_up(self):
+        self.is_long = False
+        gemerkte_pos = self.rect.center
+        # Rechteck
+        self.image = pygame.Surface((15, (self.game.spielfeldhoehe / 9)))
+        self.image.fill(PLAYER_COLOR)
+        self.rect = self.image.get_rect()
+        # positionieren
+        self.rect.center = gemerkte_pos
 
 class Ball(pygame.sprite.Sprite):
     def __init__(self, game):
         self._layer = 2
         self.game = game
         pygame.sprite.Sprite.__init__(self)
+        # Rechteck
         self.image = pygame.Surface((12, 12))
         self.image.fill(BALL_COLOR)
         self.rect = self.image.get_rect()
+        # Positionieren und Bewegung
         self.pos = pygame.math.Vector2(self.game.spielfeldx + self.game.spielfeldbreite/2 + 1,HEIGHT/2)
         self.direction = [random.uniform(30, 60),random.uniform(120,150),random.uniform(210,240),random.uniform(300,330)][random.randrange(0,4)]
         self.vel = pygame.math.Vector2(5, 0).rotate(self.direction)
+        # Power-Up
+        self.power_up_schläge = 0
+        self.is_power_up = False
 
     def update(self):
         #bewegen
@@ -118,8 +153,12 @@ class Ball(pygame.sprite.Sprite):
         if self.rect.right > self.game.spielfeldx + self.game.spielfeldbreite:
             self.game.make_game_end(0)
 
-        # Schneller werden (in Abhängigkeit von den Schläge nach der Funktion m * x + b)
-        self.vel.scale_to_length(1/8 * self.game.schläge + 5)
+        if not self.is_power_up:
+            # Schneller werden (in Abhängigkeit von den Schläge nach der Funktion m * x + b)
+            self.vel.scale_to_length(1/8 * self.game.schläge + 5)
+        else:
+            if self.game.schläge - self.power_up_schläge > self.game.POWERUP_TIME:
+                self.end_slow_power_up()
 
     def get_direction(self):
         if self.vel.x < 0:
@@ -127,8 +166,17 @@ class Ball(pygame.sprite.Sprite):
         else:
             return RIGHT
 
+    def start_slow_power_up(self):
+        self.power_up_schläge = self.game.schläge
+        self.is_power_up = True
+        self.vel.scale_to_length(5)
+
+    def end_slow_power_up(self):
+        self.is_power_up = False
+        self.vel.scale_to_length(1/8 * self.game.schläge + 5)
+
 class Hindernis(pygame.sprite.Sprite):
-    def __init__(self, game, pos, size):
+    def __init__(self, game, pos, size, is_schutz = False, geschützter_spieler = None):
         self._layer = 2
         self.game = game
         pygame.sprite.Sprite.__init__(self)
@@ -138,9 +186,14 @@ class Hindernis(pygame.sprite.Sprite):
         self.rect.center = pos
         self.direction = random.choice([MOVE_UP,MOVE_DOWN])
         self.speed = random.randrange(1,3)
+        self.is_power_type = False
+        self.is_schutz = is_schutz
+        if self.is_schutz:
+            self.geschützter_spieler = geschützter_spieler
+            self.init_schläge = self.geschützter_spieler.schläge
 
     def update(self):
-        if self.game.with_moving_hindernisse:
+        if self.game.with_moving_hindernisse and not self.is_schutz:
             if self.direction == MOVE_UP:
                 self.rect.y -= self.speed
             else:
@@ -149,3 +202,18 @@ class Hindernis(pygame.sprite.Sprite):
                 self.direction = MOVE_DOWN
             if self.rect.bottom >= self.game.spielfeldy + self.game.spielfeldhoehe - 50:
                 self.direction = MOVE_UP
+        # Schutz Zeit abgelaufen
+        if self.is_schutz and self.geschützter_spieler.schläge - self.init_schläge > self.game.POWERUP_TIME*2:
+            if self.geschützter_spieler == self.game.player0:
+                self.game.player0_has_schutz = False
+            else:
+                self.game.player1_has_schutz = False
+            self.kill()
+
+    def make_to_power_up(self, power_up_type):
+        self.is_power_type = power_up_type
+        self.image.fill(POWER_UPS[power_up_type])
+
+    def remove_from_power_up(self):
+        self.is_power_type = False
+        self.image.fill(HINDERNIS_COLOR)

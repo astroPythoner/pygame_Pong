@@ -2,7 +2,7 @@ import pygame
 from joystickpins import JoystickPins, KeyboardStick
 from constants import *
 from sprites import *
-from math import e
+import time
 
 class Game():
     def __init__(self):
@@ -26,10 +26,18 @@ class Game():
 
         # Variablen für die Hindernisse
         self.with_hindernissen = True
-        self.with_moving_hindernisse = False
+        self.with_moving_hindernisse = True
 
         # Für den Computerspieler
         self.computer_difficulty = 5
+
+        # Wie viele Schläge die Powerups aktiv sind
+        self.POWERUP_TIME = 2
+        # Merken wer zuletzt geschlagen hat um herauszubekommen wer ein Power-Up bekommt
+        self.last_schlag = None
+        # Für das Schutz Power Up
+        self.player0_has_schutz = False
+        self.player1_has_schutz = False
 
         # Runde und Gewinne beider Seiten
         self.spiel_num = 0
@@ -502,6 +510,17 @@ class Game():
         self.draw_text(surf, str(self.player1_wins), 30, center_x, center_y + 90)
         self.draw_text(surf, "Schläge: "+str(self.schläge), 25, center_x, center_y + 150)
 
+    def draw_power_up_info(self, center_x, y):
+        rechteck = pygame.Rect(center_x - 90, y, 25, 25)
+        pygame.draw.rect(screen, LONG_POWER_UP_COLOR, rechteck)
+        self.draw_text(screen,"-> Größerer Spieler",20,center_x-55,y,rect_place="oben_links")
+        rechteck = pygame.Rect(center_x - 90, y + 40, 25, 25)
+        pygame.draw.rect(screen, LANGSAM_POWER_UP_COLOR, rechteck)
+        self.draw_text(screen,"-> Langsamer Ball",20,center_x-55,y+40,rect_place="oben_links")
+        rechteck = pygame.Rect(center_x - 90, y + 80, 25, 25)
+        pygame.draw.rect(screen, SCHUTZ_POWER_UP_COLOR, rechteck)
+        self.draw_text(screen,"-> Schutzwand",20,center_x-55,y+80,rect_place="oben_links")
+
     def show_end_game_info(self, surf, center_x, y, gewonnener_spieler = None):
         if self.game_status == NEXT_GAME:
             if gewonnener_spieler == None:
@@ -653,24 +672,74 @@ class Game():
             if hit:
                 if self.debug: # Position des Abpralls für den Debug merken
                     self.abprallort = self.ball.rect.center
+                # Wenn von einem Spieler abgeprallt wurde anzahl der Schläge hochzählen und letzten Schlag dem Spieler zuweisen
                 if hindernis in [self.player0,self.player1]:
+                    if self.schläge == 0:
+                        # Beim ersten Schuss Power-Ups platzieren
+                        erstes_hindernis = random.choice(self.hindernisse.sprites())
+                        erstes_hindernis.make_to_power_up(list(POWER_UPS.keys())[0])
+                        while True:
+                            zweites_hindernis = random.choice(self.hindernisse.sprites())
+                            if zweites_hindernis != erstes_hindernis:
+                                zweites_hindernis.make_to_power_up(list(POWER_UPS.keys())[1])
+                                break
+                        while True:
+                            drittes_hindernis = random.choice(self.hindernisse.sprites())
+                            if drittes_hindernis != erstes_hindernis and drittes_hindernis != zweites_hindernis:
+                                drittes_hindernis.make_to_power_up(list(POWER_UPS.keys())[2])
+                                break
+                    # Schläge hochzählen
                     self.schläge += 1
-                if self.ball.pos.y - self.ball.vel.y > hindernis.rect.bottom: # von unten dagegen
+                    if hindernis == self.player0:
+                        self.player0.schläge += 1
+                        self.last_schlag = self.player0
+                    else:
+                        self.player1.schläge += 1
+                        self.last_schlag = self.player1
+                # Wude von einem Hindernis abgeprallt überprüfen ob es ein Power-Up Hindernis war
+                elif hindernis.is_power_type != False:
+                    # Dem Spieler das Power up geben
+                    if hindernis.is_power_type == LONG_POWER_UP:
+                        self.last_schlag.start_long_power_up()
+                    elif hindernis.is_power_type == LANGSAM_POWER_UP:
+                        self.ball.start_slow_power_up()
+                    elif hindernis.is_power_type == SCHUTZ_POWER_UP:
+                        if (self.last_schlag == self.player0 and self.player0_has_schutz == False) or (self.last_schlag == self.player1 and self.player1_has_schutz == False):
+                            # Schutzschild erstellen
+                            schutz = Hindernis(self, (int(self.spielfeldx + [50,self.spielfeldbreite-50][[self.player0,self.player1].index(self.last_schlag)]), random.randrange(int(self.spielfeldy + 80), int(self.spielfeldy + self.spielfeldhoehe - 80))), (16, self.spielfeldhoehe/5), is_schutz=True, geschützter_spieler=self.last_schlag)
+                            self.all_sprites.add(schutz)
+                            self.alles_abprallende.add(schutz)
+                            # merken das der Spieler ein Schutzschild hat
+                            if self.last_schlag == self.player0:
+                                self.player0_has_schutz = True
+                            else:
+                                self.player1_has_schutz = True
+                    # Ein anderes Hindernis das noch kein PowerUp ist zu dem Power Up machen
+                    while True:
+                        zufälliges_hindernis = random.choice(self.hindernisse.sprites())
+                        if zufälliges_hindernis.is_power_type == False and zufälliges_hindernis != hindernis:
+                            zufälliges_hindernis.make_to_power_up(hindernis.is_power_type)
+                            break
+                    # Hindernis nichtmehr als Powerup machen
+                    hindernis.remove_from_power_up()
+
+                # Bewegung ändern
+                if self.ball.pos.y - self.ball.vel.y > hindernis.rect.bottom and self.ball.vel.y < 0: # von unten dagegen
                     self.ball.pos.y = hindernis.rect.bottom + 6
                     self.ball.vel.y = -self.ball.vel.y
                     if self.debug:
                         print("von unten")
-                elif self.ball.pos.y - self.ball.vel.y < hindernis.rect.top: # von oben dagegen
+                elif self.ball.pos.y - self.ball.vel.y < hindernis.rect.top and self.ball.vel.y > 0: # von oben dagegen
                     self.ball.pos.y = hindernis.rect.top - 6
                     self.ball.vel.y = -self.ball.vel.y
                     if self.debug:
                         print("von oben")
-                if self.ball.pos.x - self.ball.vel.x < hindernis.rect.left: # von links dagegen
+                if self.ball.pos.x - self.ball.vel.x < hindernis.rect.left and self.ball.vel.x > 0: # von links dagegen
                     self.ball.pos.x = hindernis.rect.left - 6
                     self.ball.vel.x = -self.ball.vel.x
                     if self.debug:
                         print("von links")
-                elif self.ball.pos.x - self.ball.vel.x > hindernis.rect.right: # von rechts dagegen
+                elif self.ball.pos.x - self.ball.vel.x > hindernis.rect.right and self.ball.vel.x < 0: # von rechts dagegen
                     self.ball.pos.x = hindernis.rect.right + 6
                     self.ball.vel.x = -self.ball.vel.x
                     if self.debug:
@@ -698,6 +767,7 @@ class Game():
 
         # Auf der Rechten Seite noch die Info zum Spiel
         self.show_game_info(screen,WIDTH*6/7+10)
+        self.draw_power_up_info(WIDTH*6/7+10, 180)
 
     def make_game_end(self, gewonnener_spieler=None):
         self.game_status = NEXT_GAME
