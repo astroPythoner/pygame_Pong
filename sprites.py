@@ -76,14 +76,15 @@ class Ball(pygame.sprite.Sprite):
         # Positionieren und Bewegung
         self.pos = pygame.math.Vector2(self.game.spielfeldx + self.game.spielfeldbreite/2 + 1,HEIGHT/2)
         self.direction = [random.uniform(30, 60),random.uniform(120,150),random.uniform(210,240),random.uniform(300,330)][random.randrange(0,4)]
-        self.vel = pygame.math.Vector2(5, 0).rotate(self.direction)
+        self.vel = pygame.math.Vector2(3.5, 0).rotate(self.direction)
         # Power-Up
         self.power_up_schläge = 0
         self.is_power_up = False
 
     def update(self):
         #bewegen
-        self.pos += self.vel
+        self.pos.x += self.vel.x * self.game.time_diff * FPS
+        self.pos.y += self.vel.y * self.game.time_diff * FPS
         self.rect.center = self.pos
         # oben und unten anstoßen
         if self.rect.top <= self.game.spielfeldy + 8:
@@ -155,7 +156,7 @@ class Ball(pygame.sprite.Sprite):
 
         if not self.is_power_up:
             # Schneller werden (in Abhängigkeit von den Schläge nach der Funktion m * x + b)
-            self.vel.scale_to_length(1/8 * self.game.schläge + 5)
+            self.vel.scale_to_length(1/8 * self.game.schläge + 3.5)
         else:
             if self.game.schläge - self.power_up_schläge > self.game.POWERUP_TIME:
                 self.end_slow_power_up()
@@ -169,7 +170,7 @@ class Ball(pygame.sprite.Sprite):
     def start_slow_power_up(self):
         self.power_up_schläge = self.game.schläge
         self.is_power_up = True
-        self.vel.scale_to_length(5)
+        self.vel.scale_to_length(3.5)
 
     def end_slow_power_up(self):
         self.is_power_up = False

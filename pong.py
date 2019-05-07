@@ -51,6 +51,8 @@ class Game():
         self.debug = False
         self.abprallort = None
 
+        self.time_diff = 0
+
     def set_spielfeldwerte(self):
         querkant = False
         if self.spielfeldbreite >= WIDTH * 5/7:
@@ -594,7 +596,7 @@ class Game():
             screen.blit(background, background_rect)
 
             # Auf Bildschirmgeschwindigkeit achten
-            clock.tick(FPS)
+            self.time_diff = clock.tick(FPS) / 1000
 
             # Eingaben zum Verlassen des Spiels checken
             if self.check_key_pressed(ESC):
