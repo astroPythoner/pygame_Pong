@@ -513,12 +513,15 @@ class Game():
     def draw_power_up_info(self, center_x, y):
         rechteck = pygame.Rect(center_x - 90, y, 25, 25)
         pygame.draw.rect(screen, LONG_POWER_UP_COLOR, rechteck)
+        screen.blit(pygame.transform.scale(LONG_POWER_UP_img, (24, 24)), (center_x - 90, y))
         self.draw_text(screen,"-> Größerer Spieler",20,center_x-55,y,rect_place="oben_links")
         rechteck = pygame.Rect(center_x - 90, y + 40, 25, 25)
         pygame.draw.rect(screen, LANGSAM_POWER_UP_COLOR, rechteck)
+        screen.blit(pygame.transform.scale(LANGSAM_POWER_UP_img, (24, 24)), (center_x - 90, y + 40))
         self.draw_text(screen,"-> Langsamer Ball",20,center_x-55,y+40,rect_place="oben_links")
         rechteck = pygame.Rect(center_x - 90, y + 80, 25, 25)
         pygame.draw.rect(screen, SCHUTZ_POWER_UP_COLOR, rechteck)
+        screen.blit(pygame.transform.scale(SCHUTZ_POWER_UP_img, (24, 24)), (center_x - 90, y + 80))
         self.draw_text(screen,"-> Schutzwand",20,center_x-55,y+80,rect_place="oben_links")
 
     def show_end_game_info(self, surf, center_x, y, gewonnener_spieler = None):
@@ -664,6 +667,9 @@ class Game():
         self.game_status = None
         self.schläge = 0
         self.abprallort = None
+        self.last_schlag = None
+        self.player0_has_schutz = False
+        self.player1_has_schutz = False
 
     def detect_and_react_collisions(self):
         # Überprüfen ob der Ball irgendwo abprallen soll
@@ -674,7 +680,7 @@ class Game():
                     self.abprallort = self.ball.rect.center
                 # Wenn von einem Spieler abgeprallt wurde anzahl der Schläge hochzählen und letzten Schlag dem Spieler zuweisen
                 if hindernis in [self.player0,self.player1]:
-                    if self.schläge == 0:
+                    if self.schläge == 0 and self.with_hindernissen:
                         # Beim ersten Schuss Power-Ups platzieren
                         erstes_hindernis = random.choice(self.hindernisse.sprites())
                         erstes_hindernis.make_to_power_up(list(POWER_UPS.keys())[0])

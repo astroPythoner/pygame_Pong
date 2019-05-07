@@ -47,9 +47,9 @@ PLAYER_COLOR = (200,250,200)
 BALL_COLOR = (220,255,220)
 MAKIERUNGEN = (120,170,100)
 HINDERNIS_COLOR = (130,255,130)
-LONG_POWER_UP_COLOR =    (0,255,0)
-SCHUTZ_POWER_UP_COLOR =  (255,0,0)
-LANGSAM_POWER_UP_COLOR = (0,0,255)
+LONG_POWER_UP_COLOR =    (139,26,26)
+SCHUTZ_POWER_UP_COLOR =  (178,34,34)
+LANGSAM_POWER_UP_COLOR = (238,44,44)
 
 # POWER_UPS
 LONG_POWER_UP = "long power up"
@@ -104,6 +104,10 @@ snd_dir = path.join(path.dirname(__file__), 'snd')
 background = load_graphics_from_file_array(["background.png"], img_dir)
 background = pygame.transform.scale(background, (WIDTH, HEIGHT))
 background_rect = background.get_rect()
+
+LANGSAM_POWER_UP_img = load_graphics_from_file_array(["small turtle.png"], img_dir, color_key=BLACK)
+SCHUTZ_POWER_UP_img = load_graphics_from_file_array(["small schild.png"], img_dir, color_key=BLACK)
+LONG_POWER_UP_img = load_graphics_from_file_array(["small pfeile.png"], img_dir, color_key=BLACK)
 
 #pygame.mixer.music.load(path.join(snd_dir, '<name>'))
 #pygame.mixer.music.set_volume(game_music_volume)

@@ -28,7 +28,7 @@ class Player(pygame.sprite.Sprite):
     def update(self):
         # Bewegen
         if self.is_computer:
-            self.rect.centery = self.game.ball.rect.centery + 10
+            self.rect.centery = self.game.ball.rect.centery
         else:
             if self.game.check_key_pressed(MOVE_UP, self.player_num):
                 self.rect.y -= self.game.spielfeldhoehe / 50
@@ -88,7 +88,7 @@ class Ball(pygame.sprite.Sprite):
         # oben und unten anstoßen
         if self.rect.top <= self.game.spielfeldy + 8:
             if self.game.debug:
-                print("Oben an der Wand abrpallen")
+                print("Oben an der Wand abrpallen (vel:", self.vel,")")
             self.rect.top = self.game.spielfeldy + 8
             self.vel.y = -self.vel.y
             # Fliegt der Ball seitlich am Rand kann er dadruch, dass die Spieler sich nur bis zum Spielfeldrandbewegen können, festhängen. Er fliegt daher zur Seite
@@ -119,7 +119,7 @@ class Ball(pygame.sprite.Sprite):
                     self.vel = self.vel.rotate(15)
         if self.rect.bottom >= self.game.spielfeldy + self.game.spielfeldhoehe - 7:
             if self.game.debug:
-                print("Unten an der Wand abrpallen")
+                print("Unten an der Wand abrpallen (vel:", self.vel,")")
             self.rect.bottom = self.game.spielfeldy + self.game.spielfeldhoehe - 7
             self.vel.y = -self.vel.y
             # Fliegt der Ball seitlich am Rand kann er dadruch, dass die Spieler sich nur bis zum Spielfeldrandbewegen können, festhängen. Er fliegt daher zur Seite
@@ -182,6 +182,7 @@ class Hindernis(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.Surface(size)
         self.image.fill(HINDERNIS_COLOR)
+        self.image.set_colorkey(WHITE)
         self.rect = self.image.get_rect()
         self.rect.center = pos
         self.direction = random.choice([MOVE_UP,MOVE_DOWN])
@@ -212,7 +213,18 @@ class Hindernis(pygame.sprite.Sprite):
 
     def make_to_power_up(self, power_up_type):
         self.is_power_type = power_up_type
+        # Mit entsprechender Fabre füllen
         self.image.fill(POWER_UPS[power_up_type])
+        # Power-Up Symbol zeichnen
+        if power_up_type == LANGSAM_POWER_UP:
+            self.image.blit(pygame.transform.scale(LANGSAM_POWER_UP_img, (min(self.image.get_size()), min(self.image.get_size()))), (self.image.get_width()/2 - min(self.image.get_size())/2, self.image.get_height()/2 - min(self.image.get_size())/2));
+            #self.image = pygame.transform.scale(LANGSAM_POWER_UP_img, (min(self.image.get_size()), min(self.image.get_size())))
+        if power_up_type == SCHUTZ_POWER_UP:
+            self.image.blit(pygame.transform.scale(SCHUTZ_POWER_UP_img, (min(self.image.get_size()), min(self.image.get_size()))), (self.image.get_width()/2 - min(self.image.get_size())/2, self.image.get_height()/2 - min(self.image.get_size())/2));
+            #self.image = pygame.transform.scale(SCHUTZ_POWER_UP_img, (min(self.image.get_size()), min(self.image.get_size())))
+        if power_up_type == LONG_POWER_UP:
+            self.image.blit(pygame.transform.scale(LONG_POWER_UP_img, (min(self.image.get_size()), min(self.image.get_size()))), (self.image.get_width()/2 - min(self.image.get_size())/2, self.image.get_height()/2 - min(self.image.get_size())/2));
+            #self.image = pygame.transform.scale(LONG_POWER_UP_img, (min(self.image.get_size()), min(self.image.get_size())))
 
     def remove_from_power_up(self):
         self.is_power_type = False
