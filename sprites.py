@@ -31,9 +31,9 @@ class Player(pygame.sprite.Sprite):
             self.rect.centery = self.game.ball.rect.centery
         else:
             if self.game.check_key_pressed(MOVE_UP, self.player_num):
-                self.rect.y -= self.game.spielfeldhoehe / 50
+                self.rect.y -= (self.game.spielfeldhoehe / 80) * self.game.time_diff * FPS
             elif self.game.check_key_pressed(MOVE_DOWN, self.player_num):
-                self.rect.y += self.game.spielfeldhoehe / 50
+                self.rect.y += (self.game.spielfeldhoehe / 80) * self.game.time_diff * FPS
         if self.rect.top < self.game.spielfeldy+8:
             self.rect.top = self.game.spielfeldy+8
         if self.rect.bottom > self.game.spielfeldy + self.game.spielfeldhoehe - 7:
@@ -91,6 +91,7 @@ class Ball(pygame.sprite.Sprite):
             if self.game.debug:
                 print("Oben an der Wand abrpallen (vel:", self.vel,")")
             self.rect.top = self.game.spielfeldy + 8
+            self.pos.y = self.rect.centery
             self.vel.y = -self.vel.y
             # Fliegt der Ball seitlich am Rand kann er dadruch, dass die Spieler sich nur bis zum Spielfeldrandbewegen können, festhängen. Er fliegt daher zur Seite
             if self.vel.y == 0:
@@ -122,6 +123,7 @@ class Ball(pygame.sprite.Sprite):
             if self.game.debug:
                 print("Unten an der Wand abrpallen (vel:", self.vel,")")
             self.rect.bottom = self.game.spielfeldy + self.game.spielfeldhoehe - 7
+            self.pos.y = self.rect.centery
             self.vel.y = -self.vel.y
             # Fliegt der Ball seitlich am Rand kann er dadruch, dass die Spieler sich nur bis zum Spielfeldrandbewegen können, festhängen. Er fliegt daher zur Seite
             if self.vel.y == 0:
@@ -187,7 +189,7 @@ class Hindernis(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = pos
         self.direction = random.choice([MOVE_UP,MOVE_DOWN])
-        self.speed = random.randrange(1,3)
+        self.speed = random.randrange(4,8) / 4
         self.is_power_type = False
         self.is_schutz = is_schutz
         if self.is_schutz:
@@ -197,9 +199,9 @@ class Hindernis(pygame.sprite.Sprite):
     def update(self):
         if self.game.with_moving_hindernisse and not self.is_schutz:
             if self.direction == MOVE_UP:
-                self.rect.y -= self.speed
+                self.rect.y -= self.speed * self.game.time_diff * FPS
             else:
-                self.rect.y += self.speed
+                self.rect.y += self.speed * self.game.time_diff  * FPS
             if self.rect.top <= self.game.spielfeldy + 50:
                 self.direction = MOVE_DOWN
             if self.rect.bottom >= self.game.spielfeldy + self.game.spielfeldhoehe - 50:
