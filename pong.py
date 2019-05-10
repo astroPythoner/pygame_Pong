@@ -647,19 +647,37 @@ class Game():
 
         # Wenn so eingestellt Hindernisse erzeugen
         if self.with_hindernissen:
-            bisherige_x = []
-            while len(bisherige_x)/100 < 7:
-                x = random.randrange(int(self.spielfeldx + 100), int(self.spielfeldx+self.spielfeldbreite - 100))
-                y = random.randrange(int(self.spielfeldy + 100), int(self.spielfeldy+self.spielfeldhoehe - 100))
-                width = random.randrange(25,40)
-                height = random.randrange(25,40)
-                if x not in bisherige_x:
+            if not self.with_moving_hindernisse:
+                start_time = time.time() * 1000
+                used_positions = []
+                placed_hindernise = 0
+                while placed_hindernise < 7:
+                    x = random.randrange(int(self.spielfeldx + 150), int(self.spielfeldx + self.spielfeldbreite - 150))
+                    y = random.randrange(int(self.spielfeldy + 90), int(self.spielfeldy + self.spielfeldhoehe - 90))
+                    if (x,y) not in used_positions:
+                        placed_hindernise += 1
+                        width = random.randrange(40, 60)
+                        height = random.randrange(30, 50)
+                        hindernis = Hindernis(self, (x, y), (width, height))
+                        self.hindernisse.add(hindernis)
+                        self.all_sprites.add(hindernis)
+                        self.alles_abprallende.add(hindernis)
+                        for x_pos in range(-width-30,width+30):
+                            for y_pos in range(-height-30,height+30):
+                                used_positions.append((x_pos+x,y_pos+y))
+                    if start_time + 1000 < time.time() * 1000:
+                        print("not found")
+                        break
+            else:
+                for num in range(0,7):
+                    x = self.spielfeldx + (self.spielfeldbreite * (num+2)/10) + random.randrange(-10,10)
+                    y = random.randrange(int(self.spielfeldy + 100), int(self.spielfeldy+self.spielfeldhoehe - 100))
+                    width = random.randrange(30,45)
+                    height = random.randrange(30,70)
                     hindernis = Hindernis(self,(x,y),(width,height))
                     self.hindernisse.add(hindernis)
                     self.all_sprites.add(hindernis)
                     self.alles_abprallende.add(hindernis)
-                    for i in range (-50,50):
-                        bisherige_x.append(x + i)
 
         # Ball erstellen
         self.ball = Ball(self)
@@ -731,25 +749,29 @@ class Game():
                     # Hindernis nichtmehr als Powerup machen
                     hindernis.remove_from_power_up()
 
-                # Bewegung ändern
+                # Bewegung ändern     # Um zu verhindern, dass ein Ball Beispielsweise zwischen zwei Hindernissen unedlich ang hin und her fliegt wird die Flugbahn mit einem Zufallswert etwas gedreht
                 if self.ball.pos.y - self.ball.vel.y > hindernis.rect.bottom and self.ball.vel.y < 0: # von unten dagegen
                     self.ball.pos.y = hindernis.rect.bottom + 6
                     self.ball.vel.y = -self.ball.vel.y
+                    self.ball.vel.rotate(random.randrange(-3, 3))
                     if self.debug:
                         print("von unten")
                 elif self.ball.pos.y - self.ball.vel.y < hindernis.rect.top and self.ball.vel.y > 0: # von oben dagegen
                     self.ball.pos.y = hindernis.rect.top - 6
                     self.ball.vel.y = -self.ball.vel.y
+                    self.ball.vel.rotate(random.randrange(-3, 3))
                     if self.debug:
                         print("von oben")
                 if self.ball.pos.x - self.ball.vel.x < hindernis.rect.left and self.ball.vel.x > 0: # von links dagegen
                     self.ball.pos.x = hindernis.rect.left - 6
                     self.ball.vel.x = -self.ball.vel.x
+                    self.ball.vel.rotate(random.randrange(-3, 3))
                     if self.debug:
                         print("von links")
                 elif self.ball.pos.x - self.ball.vel.x > hindernis.rect.right and self.ball.vel.x < 0: # von rechts dagegen
                     self.ball.pos.x = hindernis.rect.right + 6
                     self.ball.vel.x = -self.ball.vel.x
+                    self.ball.vel.rotate(random.randrange(-3, 3))
                     if self.debug:
                         print("von rechts")
 
