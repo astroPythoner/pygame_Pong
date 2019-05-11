@@ -96,7 +96,6 @@ def load_graphics_from_file_array(file_array, dir, color_key=None, convert_aplha
 
     return return_images
 
-
 # Dateipfade herausfinden
 # Diese Pythondatei sollte im gleichen Ordner liegen wie der img Ornder mit den Grafiken und der snd Ordner mit den Tönen
 img_dir = path.join(path.dirname(__file__), 'img')

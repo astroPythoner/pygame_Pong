@@ -786,25 +786,25 @@ class Game():
                     if self.ball.pos.y - self.ball.vel.y > hindernis.rect.bottom and self.ball.vel.y < 0: # von unten dagegen
                         self.ball.pos.y = hindernis.rect.bottom + 6
                         self.ball.vel.y = -self.ball.vel.y
-                        self.ball.vel.rotate(random.randrange(-3, 3))
+                        self.ball.vel = self.ball.vel.rotate(random.randrange(3,8))
                         if self.debug:
                             print("von unten")
                     elif self.ball.pos.y - self.ball.vel.y < hindernis.rect.top and self.ball.vel.y > 0: # von oben dagegen
                         self.ball.pos.y = hindernis.rect.top - 6
                         self.ball.vel.y = -self.ball.vel.y
-                        self.ball.vel.rotate(random.randrange(-3, 3))
+                        self.ball.vel = self.ball.vel.rotate(random.randrange(-3,-8,-1))
                         if self.debug:
                             print("von oben")
                     if self.ball.pos.x - self.ball.vel.x < hindernis.rect.left and self.ball.vel.x > 0: # von links dagegen
                         self.ball.pos.x = hindernis.rect.left - 6
                         self.ball.vel.x = -self.ball.vel.x
-                        self.ball.vel.rotate(random.randrange(-3, 3))
+                        self.ball.vel = self.ball.vel.rotate(random.randrange(3,8))
                         if self.debug:
                             print("von links")
                     elif self.ball.pos.x - self.ball.vel.x > hindernis.rect.right and self.ball.vel.x < 0: # von rechts dagegen
                         self.ball.pos.x = hindernis.rect.right + 6
                         self.ball.vel.x = -self.ball.vel.x
-                        self.ball.vel.rotate(random.randrange(-3, 3))
+                        self.ball.vel = self.ball.vel.rotate(random.randrange(-3,-8,-1))
                         if self.debug:
                             print("von rechts")
 
