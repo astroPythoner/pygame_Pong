@@ -83,85 +83,93 @@ class Ball(pygame.sprite.Sprite):
 
     def update(self):
         #bewegen
-        self.pos.x += self.vel.x * self.game.time_diff * FPS
-        self.pos.y += self.vel.y * self.game.time_diff * FPS
-        self.rect.center = self.pos
-        # oben und unten anstoßen
-        if self.rect.top <= self.game.spielfeldy + 8:
-            if self.game.debug:
-                print("Oben an der Wand abrpallen (vel:", self.vel,")")
-            self.rect.top = self.game.spielfeldy + 8
-            self.pos.y = self.rect.centery
-            self.vel.y = -self.vel.y
-            # Fliegt der Ball seitlich am Rand kann er dadruch, dass die Spieler sich nur bis zum Spielfeldrandbewegen können, festhängen. Er fliegt daher zur Seite
-            if self.vel.y == 0:
-                if self.game.debug:
-                    print("Vertikaler Flug erkannt")
-                if self.get_direction() == RIGHT:
-                    self.vel = self.vel.rotate(20)
-                else:
-                    self.vel = self.vel.rotate(-20)
-            # Ein Horizontal fliegender Ball fliegt eventuell endlos hoch und runter. Daher fliegt er zur Seite
-            elif self.vel.x == 0:
-                if self.game.debug:
-                    print("Horizontaler Flug erkannt")
-                if self.pos.x < self.game.spielfeldx + self.game.spielfeldbreite/2:
-                    self.vel = self.vel.rotate(-20)
-                else:
-                    self.vel = self.vel.rotate(20)
-            # Fliegt der Ball zu gerade nach oben dauert es ewig bis er ein Ziel erreicht. Daher fliegt er zur Seite
-            else:
-                if self.get_direction() == RIGHT and self.vel.x * 3 < self.vel.y:
+        for bewegung_num in range (1,5):
+            if self.game.game_status == None:
+                self.pos.x += (self.vel.x * self.game.time_diff * FPS) / 4
+                self.pos.y += (self.vel.y * self.game.time_diff * FPS) / 4
+                self.rect.center = self.pos
+                # oben und unten anstoßen
+                if self.rect.top <= self.game.spielfeldy + 8:
                     if self.game.debug:
-                        print("Flug zu wenig nach rechts geneigt")
-                    self.vel = self.vel.rotate(-15)
-                elif self.get_direction() == LEFT and - (self.vel.x * 3) < self.vel.y:
+                        print("Oben an der Wand abrpallen (vel:", self.vel,")")
+                    self.rect.top = self.game.spielfeldy + 9
+                    self.pos.y = self.rect.centery
+                    self.vel.y = -self.vel.y
+                    # Fliegt der Ball seitlich am Rand kann er dadruch, dass die Spieler sich nur bis zum Spielfeldrandbewegen können, festhängen. Er fliegt daher zur Seite
+                    if self.vel.y == 0:
+                        if self.game.debug:
+                            print("Vertikaler Flug erkannt")
+                        if self.get_direction() == RIGHT:
+                            self.vel = self.vel.rotate(20)
+                        else:
+                            self.vel = self.vel.rotate(-20)
+                    # Ein Horizontal fliegender Ball fliegt eventuell endlos hoch und runter. Daher fliegt er zur Seite
+                    elif self.vel.x == 0:
+                        if self.game.debug:
+                            print("Horizontaler Flug erkannt")
+                        if self.pos.x < self.game.spielfeldx + self.game.spielfeldbreite/2:
+                            self.vel = self.vel.rotate(-20)
+                        else:
+                            self.vel = self.vel.rotate(20)
+                    # Fliegt der Ball zu gerade nach oben dauert es ewig bis er ein Ziel erreicht. Daher fliegt er zur Seite
+                    else:
+                        if self.get_direction() == RIGHT and self.vel.x * 3 < self.vel.y:
+                            if self.game.debug:
+                                print("Flug zu wenig nach rechts geneigt")
+                            self.vel = self.vel.rotate(-15)
+                        elif self.get_direction() == LEFT and - (self.vel.x * 3) < self.vel.y:
+                            if self.game.debug:
+                                print("Flug zu wenig nach links geneigt")
+                            self.vel = self.vel.rotate(15)
+                if self.rect.bottom >= self.game.spielfeldy + self.game.spielfeldhoehe - 7:
                     if self.game.debug:
-                        print("Flug zu wenig nach links geneigt")
-                    self.vel = self.vel.rotate(15)
-        if self.rect.bottom >= self.game.spielfeldy + self.game.spielfeldhoehe - 7:
-            if self.game.debug:
-                print("Unten an der Wand abrpallen (vel:", self.vel,")")
-            self.rect.bottom = self.game.spielfeldy + self.game.spielfeldhoehe - 7
-            self.pos.y = self.rect.centery
-            self.vel.y = -self.vel.y
-            # Fliegt der Ball seitlich am Rand kann er dadruch, dass die Spieler sich nur bis zum Spielfeldrandbewegen können, festhängen. Er fliegt daher zur Seite
-            if self.vel.y == 0:
-                if self.game.debug:
-                    print("Vertikaler Flug erkannt")
-                if self.get_direction() == RIGHT:
-                    self.vel = self.vel.rotate(-20)
-                else:
-                    self.vel = self.vel.rotate(20)
-            # Fliegt der Ball zu gerade nach unten dauert es ewig bis er ein Ziel erreicht. Daher fliegt er zur Seite
-            elif self.vel.x == 0:
-                if self.game.debug:
-                    print("Horizontaler Flug erkannt")
-                if self.pos.x < self.game.spielfeldx + self.game.spielfeldbreite/2:
-                    self.vel = self.vel.rotate(20)
-                else:
-                    self.vel = self.vel.rotate(+20)
-            else:
-                if self.get_direction() == RIGHT and self.vel.x * 3 < -self.vel.y:
+                        print("Unten an der Wand abrpallen (vel:", self.vel,")")
+                    self.rect.bottom = self.game.spielfeldy + self.game.spielfeldhoehe - 8
+                    self.pos.y = self.rect.centery
+                    self.vel.y = -self.vel.y
+                    # Fliegt der Ball seitlich am Rand kann er dadruch, dass die Spieler sich nur bis zum Spielfeldrandbewegen können, festhängen. Er fliegt daher zur Seite
+                    if self.vel.y == 0:
+                        if self.game.debug:
+                            print("Vertikaler Flug erkannt")
+                        if self.get_direction() == RIGHT:
+                            self.vel = self.vel.rotate(-20)
+                        else:
+                            self.vel = self.vel.rotate(20)
+                    # Fliegt der Ball zu gerade nach unten dauert es ewig bis er ein Ziel erreicht. Daher fliegt er zur Seite
+                    elif self.vel.x == 0:
+                        if self.game.debug:
+                            print("Horizontaler Flug erkannt")
+                        if self.pos.x < self.game.spielfeldx + self.game.spielfeldbreite/2:
+                            self.vel = self.vel.rotate(20)
+                        else:
+                            self.vel = self.vel.rotate(+20)
+                    else:
+                        if self.get_direction() == RIGHT and self.vel.x * 3 < -self.vel.y:
+                            if self.game.debug:
+                                print("Flug zu wenig nach rechts geneigt")
+                            self.vel = self.vel.rotate(15)
+                        elif self.get_direction() == LEFT and - (self.vel.x * 3) < -self.vel.y:
+                            if self.game.debug:
+                                print("Flug zu wenig nach links geneigt")
+                            self.vel = self.vel.rotate(-15)
+                # links oder rechts rausgeflogen <- Spiel endet
+                if self.rect.left < self.game.spielfeldx:
                     if self.game.debug:
-                        print("Flug zu wenig nach rechts geneigt")
-                    self.vel = self.vel.rotate(15)
-                elif self.get_direction() == LEFT and - (self.vel.x * 3) < -self.vel.y:
+                        print("Ball links herausgeflogen, Spieler 2 gewinnt")
+                    self.game.make_game_end(1)
+                if self.rect.right > self.game.spielfeldx + self.game.spielfeldbreite:
                     if self.game.debug:
-                        print("Flug zu wenig nach links geneigt")
-                    self.vel = self.vel.rotate(-15)
-        # links oder rechts rausgeflogen <- Spiel endet
-        if self.rect.left < self.game.spielfeldx:
-            self.game.make_game_end(1)
-        if self.rect.right > self.game.spielfeldx + self.game.spielfeldbreite:
-            self.game.make_game_end(0)
+                        print("Ball rechts herausgeflogen, Spieler 1 gewinnt")
+                    self.game.make_game_end(0)
 
-        if not self.is_power_up:
-            # Schneller werden (in Abhängigkeit von den Schläge nach der Funktion m * x + b)
-            self.vel.scale_to_length(1/8 * self.game.schläge + 3.5)
-        else:
-            if self.game.schläge - self.power_up_schläge > self.game.POWERUP_TIME:
-                self.end_slow_power_up()
+                self.game.detect_and_react_collisions()
+
+                if not self.is_power_up:
+                    # Schneller werden (in Abhängigkeit von den Schläge nach der Funktion m * x + b)
+                    self.vel.scale_to_length(1/16 * self.game.schläge + 3.5)
+                else:
+                    if self.game.schläge - self.power_up_schläge > self.game.POWERUP_TIME:
+                        self.end_slow_power_up()
 
     def get_direction(self):
         if self.vel.x < 0:
@@ -172,10 +180,12 @@ class Ball(pygame.sprite.Sprite):
     def start_slow_power_up(self):
         self.power_up_schläge = self.game.schläge
         self.is_power_up = True
+        self.image.fill(SLOW_BALL_COLOR)
         self.vel.scale_to_length(3.5)
 
     def end_slow_power_up(self):
         self.is_power_up = False
+        self.image.fill(BALL_COLOR)
         self.vel.scale_to_length(1/8 * self.game.schläge + 5)
 
 class Hindernis(pygame.sprite.Sprite):

@@ -48,7 +48,7 @@ class Game():
         self.schläge = 0  # Zählt hoch, wie oft der Ball von den Spielern zurückgeschossen wurde
 
         # Debug gibt einige Prints aus und setzt an Abprallpunkte einen Sprite
-        self.debug = False
+        self.debug = True
         self.abprallort = None
 
         self.time_diff = 0
@@ -656,8 +656,8 @@ class Game():
                     y = random.randrange(int(self.spielfeldy + 90), int(self.spielfeldy + self.spielfeldhoehe - 90))
                     if (x,y) not in used_positions:
                         placed_hindernise += 1
-                        width = random.randrange(40, 60)
-                        height = random.randrange(30, 50)
+                        width = random.randrange(40, int(self.spielfeldbreite/8))
+                        height = random.randrange(30, int(self.spielfeldhoehe/8))
                         hindernis = Hindernis(self, (x, y), (width, height))
                         self.hindernisse.add(hindernis)
                         self.all_sprites.add(hindernis)
@@ -673,7 +673,7 @@ class Game():
                     x = self.spielfeldx + (self.spielfeldbreite * (num+2)/10) + random.randrange(-10,10)
                     y = random.randrange(int(self.spielfeldy + 100), int(self.spielfeldy+self.spielfeldhoehe - 100))
                     width = random.randrange(30,45)
-                    height = random.randrange(30,70)
+                    height = random.randrange(30,int(self.spielfeldhoehe/6.5))
                     hindernis = Hindernis(self,(x,y),(width,height))
                     self.hindernisse.add(hindernis)
                     self.all_sprites.add(hindernis)
