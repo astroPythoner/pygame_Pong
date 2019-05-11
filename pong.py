@@ -27,6 +27,7 @@ class Game():
         # Variablen für die Hindernisse
         self.with_hindernissen = True
         self.with_moving_hindernisse = True
+        self.with_power_ups = True
 
         # Für den Computerspieler
         self.computer_difficulty = 5
@@ -377,8 +378,8 @@ class Game():
             if self.check_key_pressed(MOVE_DOWN)and last_switch + 300 < pygame.time.get_ticks():
                 last_switch = pygame.time.get_ticks()
                 selected_row += 1
-                if selected_row > 3:
-                    selected_row = 3
+                if selected_row > 4:
+                    selected_row = 4
             if self.check_key_pressed(AB) and last_switch + 200 < pygame.time.get_ticks():
                 last_switch = pygame.time.get_ticks()
                 if selected_row == 1:
@@ -394,9 +395,14 @@ class Game():
                         else:
                             self.with_moving_hindernisse = True
                 if selected_row == 2:
+                    if self.with_power_ups:
+                        self.with_power_ups = False
+                    else:
+                        self.with_power_ups = True
+                if selected_row == 3:
                     self.spielfeldhoehe  = [HEIGHT     , min(WIDTH*5/7,HEIGHT), WIDTH * 5/7 / 1.4142156, WIDTH * 5/7 / 2][selected_colum]
                     self.spielfeldbreite = [WIDTH * 5/7, min(WIDTH*5/7,HEIGHT), WIDTH * 5/7            , WIDTH * 5/7    ][selected_colum]
-                if selected_row == 3:
+                if selected_row == 4:
                     self.spielfeld_color = [SPIELFELD_FORREST,SPIELFELD_DARK,SPIELFELD_OLIVE,SPIELFELD_BLACK][selected_colum]
                 self.set_spielfeldwerte()
             if self.check_key_pressed(LEFT) and last_switch + 200 < pygame.time.get_ticks():
@@ -457,20 +463,31 @@ class Game():
             else:
                 self.draw_text(surf, text, 34, WIDTH / 2 + [-180,180][num], HEIGHT * 2/5 - 30, color=TEXT_COLOR, rect_place="mitte")
 
-        for num, text in enumerate(["Vollbild","Quadtratisch","Rechteck","Langgestreckt"]):
-            if selected_row == 2 and selected_column == num:
-                self.draw_text(surf, text, 34, WIDTH / 2 + [-300,-100,100,300][num], HEIGHT * 2/5 + 30, color=TEXT_RED, rect_place="mitte")
-            elif self.spielfeldhoehe == [HEIGHT, min(WIDTH*5/7,HEIGHT), WIDTH * 5/7 / 1.4142156, WIDTH * 5/7 / 2][num] and self.spielfeldbreite == [WIDTH * 5/7, min(WIDTH*5/7,HEIGHT), WIDTH * 5/7, WIDTH * 5/7][num]:
-                self.draw_text(surf, text, 34, WIDTH / 2 + [-300,-100,100,300][num], HEIGHT * 2/5 + 30, color=TEXT_GREEN, rect_place="mitte")
+        if self.with_power_ups:
+            if selected_row == 2:
+                self.draw_text(surf, "Mit PowerUps", 34, WIDTH / 2, HEIGHT * 2 / 5 + 30, color=TEXT_RED, rect_place="mitte")
             else:
-                self.draw_text(surf, text, 34, WIDTH / 2 + [-300,-100,100,300][num], HEIGHT * 2/5 + 30, color=TEXT_COLOR, rect_place="mitte")
-        for num, text in enumerate(["Waldgrün","Dunkelgrün","Olivgrün","Schwarz"]):
+                self.draw_text(surf, "Mit PowerUps", 34, WIDTH / 2, HEIGHT * 2 / 5 + 30, color=TEXT_COLOR, rect_place="mitte")
+        else:
+            if selected_row == 2:
+                self.draw_text(surf, "Ohne PowerUps", 34, WIDTH / 2, HEIGHT * 2 / 5 + 30, color=TEXT_RED, rect_place="mitte")
+            else:
+                self.draw_text(surf, "Ohne PowerUps", 34, WIDTH / 2, HEIGHT * 2 / 5 + 30, color=TEXT_COLOR, rect_place="mitte")
+
+        for num, text in enumerate(["Vollbild","Quadtratisch","Rechteck","Langgestreckt"]):
             if selected_row == 3 and selected_column == num:
                 self.draw_text(surf, text, 34, WIDTH / 2 + [-300,-100,100,300][num], HEIGHT * 2/5 + 90, color=TEXT_RED, rect_place="mitte")
-            elif self.spielfeld_color == [SPIELFELD_FORREST,SPIELFELD_DARK,SPIELFELD_OLIVE,SPIELFELD_BLACK][num]:
+            elif self.spielfeldhoehe == [HEIGHT, min(WIDTH*5/7,HEIGHT), WIDTH * 5/7 / 1.4142156, WIDTH * 5/7 / 2][num] and self.spielfeldbreite == [WIDTH * 5/7, min(WIDTH*5/7,HEIGHT), WIDTH * 5/7, WIDTH * 5/7][num]:
                 self.draw_text(surf, text, 34, WIDTH / 2 + [-300,-100,100,300][num], HEIGHT * 2/5 + 90, color=TEXT_GREEN, rect_place="mitte")
             else:
                 self.draw_text(surf, text, 34, WIDTH / 2 + [-300,-100,100,300][num], HEIGHT * 2/5 + 90, color=TEXT_COLOR, rect_place="mitte")
+        for num, text in enumerate(["Waldgrün","Dunkelgrün","Olivgrün","Schwarz"]):
+            if selected_row == 4 and selected_column == num:
+                self.draw_text(surf, text, 34, WIDTH / 2 + [-300,-100,100,300][num], HEIGHT * 2/5 + 150, color=TEXT_RED, rect_place="mitte")
+            elif self.spielfeld_color == [SPIELFELD_FORREST,SPIELFELD_DARK,SPIELFELD_OLIVE,SPIELFELD_BLACK][num]:
+                self.draw_text(surf, text, 34, WIDTH / 2 + [-300,-100,100,300][num], HEIGHT * 2/5 + 150, color=TEXT_GREEN, rect_place="mitte")
+            else:
+                self.draw_text(surf, text, 34, WIDTH / 2 + [-300,-100,100,300][num], HEIGHT * 2/5 + 150, color=TEXT_COLOR, rect_place="mitte")
 
         # Texte unten mit Hinweisen zur Bedienung
         self.draw_text(surf, "W/S oder Joystick zum Auswahl ändern", 20, WIDTH / 2, HEIGHT * 3 / 4 - 25)
@@ -701,7 +718,8 @@ class Game():
                     self.abprallort = self.ball.rect.center
                 # Wenn von einem Spieler abgeprallt wurde anzahl der Schläge hochzählen und letzten Schlag dem Spieler zuweisen
                 if hindernis in [self.player0,self.player1]:
-                    if self.schläge == 0: # Beim ersten Schuss Power-Ups platzieren
+                    # Beim ersten Schuss Power-Ups platzieren
+                    if self.schläge == 0 and self.with_power_ups:
                         if self.with_hindernissen:
                             erstes_hindernis = random.choice(self.hindernisse.sprites())
                             erstes_hindernis.make_to_power_up(list(POWER_UPS.keys())[0])
@@ -812,7 +830,8 @@ class Game():
 
         # Auf der Rechten Seite noch die Info zum Spiel
         self.show_game_info(screen,WIDTH*6/7+10)
-        self.draw_power_up_info(WIDTH*6/7+10, 180)
+        if self.with_power_ups:
+            self.draw_power_up_info(WIDTH*6/7+10, 180)
 
     def make_game_end(self, gewonnener_spieler=None):
         self.game_status = NEXT_GAME
