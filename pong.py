@@ -48,7 +48,7 @@ class Game():
         self.schläge = 0  # Zählt hoch, wie oft der Ball von den Spielern zurückgeschossen wurde
 
         # Debug gibt einige Prints aus und setzt an Abprallpunkte einen Sprite
-        self.debug = True
+        self.debug = False
         self.abprallort = None
 
         self.time_diff = 0
@@ -385,6 +385,7 @@ class Game():
                     if selected_colum == 1:
                         if self.with_hindernissen:
                             self.with_hindernissen = False
+                            self.with_moving_hindernisse = False
                         else:
                             self.with_hindernissen = True
                     else:
@@ -700,20 +701,31 @@ class Game():
                     self.abprallort = self.ball.rect.center
                 # Wenn von einem Spieler abgeprallt wurde anzahl der Schläge hochzählen und letzten Schlag dem Spieler zuweisen
                 if hindernis in [self.player0,self.player1]:
-                    if self.schläge == 0 and self.with_hindernissen:
-                        # Beim ersten Schuss Power-Ups platzieren
-                        erstes_hindernis = random.choice(self.hindernisse.sprites())
-                        erstes_hindernis.make_to_power_up(list(POWER_UPS.keys())[0])
-                        while True:
-                            zweites_hindernis = random.choice(self.hindernisse.sprites())
-                            if zweites_hindernis != erstes_hindernis:
-                                zweites_hindernis.make_to_power_up(list(POWER_UPS.keys())[1])
-                                break
-                        while True:
-                            drittes_hindernis = random.choice(self.hindernisse.sprites())
-                            if drittes_hindernis != erstes_hindernis and drittes_hindernis != zweites_hindernis:
-                                drittes_hindernis.make_to_power_up(list(POWER_UPS.keys())[2])
-                                break
+                    if self.schläge == 0: # Beim ersten Schuss Power-Ups platzieren
+                        if self.with_hindernissen:
+                            erstes_hindernis = random.choice(self.hindernisse.sprites())
+                            erstes_hindernis.make_to_power_up(list(POWER_UPS.keys())[0])
+                            while True:
+                                zweites_hindernis = random.choice(self.hindernisse.sprites())
+                                if zweites_hindernis != erstes_hindernis:
+                                    zweites_hindernis.make_to_power_up(list(POWER_UPS.keys())[1])
+                                    break
+                            while True:
+                                drittes_hindernis = random.choice(self.hindernisse.sprites())
+                                if drittes_hindernis != erstes_hindernis and drittes_hindernis != zweites_hindernis:
+                                    drittes_hindernis.make_to_power_up(list(POWER_UPS.keys())[2])
+                                    break
+                        else:
+                            for num in range(0, 3):
+                                x = self.spielfeldx + (self.spielfeldbreite * (num + 2) / 6) + random.randrange(-10, 10)
+                                y = random.randrange(int(self.spielfeldy + 100), int(self.spielfeldy + self.spielfeldhoehe - 100))
+                                width = random.randrange(int(self.spielfeldbreite / 9), int(self.spielfeldbreite / 7))
+                                height = random.randrange(int(self.spielfeldhoehe / 9), int(self.spielfeldhoehe / 7))
+                                hindernis = Hindernis(self, (x, y), (width, height))
+                                hindernis.make_to_power_up(list(POWER_UPS.keys())[num])
+                                self.hindernisse.add(hindernis)
+                                self.all_sprites.add(hindernis)
+                                self.alles_abprallende.add(hindernis)
                     # Schläge hochzählen
                     self.schläge += 1
                     if hindernis == self.player0:
@@ -740,40 +752,43 @@ class Game():
                                 self.player0_has_schutz = True
                             else:
                                 self.player1_has_schutz = True
-                    # Ein anderes Hindernis das noch kein PowerUp ist zu dem Power Up machen
-                    while True:
-                        zufälliges_hindernis = random.choice(self.hindernisse.sprites())
-                        if zufälliges_hindernis.is_power_type == False and zufälliges_hindernis != hindernis:
-                            zufälliges_hindernis.make_to_power_up(hindernis.is_power_type)
-                            break
-                    # Hindernis nichtmehr als Powerup machen
-                    hindernis.remove_from_power_up()
+                    if self.with_hindernissen:
+                        # Ein anderes Hindernis das noch kein PowerUp ist zu dem Power Up machen
+                        while True:
+                            zufälliges_hindernis = random.choice(self.hindernisse.sprites())
+                            if zufälliges_hindernis.is_power_type == False and zufälliges_hindernis != hindernis:
+                                zufälliges_hindernis.make_to_power_up(hindernis.is_power_type)
+                                break
+                        # Hindernis nichtmehr als Powerup machenw
+                        hindernis.remove_from_power_up()
 
-                # Bewegung ändern     # Um zu verhindern, dass ein Ball Beispielsweise zwischen zwei Hindernissen unedlich ang hin und her fliegt wird die Flugbahn mit einem Zufallswert etwas gedreht
-                if self.ball.pos.y - self.ball.vel.y > hindernis.rect.bottom and self.ball.vel.y < 0: # von unten dagegen
-                    self.ball.pos.y = hindernis.rect.bottom + 6
-                    self.ball.vel.y = -self.ball.vel.y
-                    self.ball.vel.rotate(random.randrange(-3, 3))
-                    if self.debug:
-                        print("von unten")
-                elif self.ball.pos.y - self.ball.vel.y < hindernis.rect.top and self.ball.vel.y > 0: # von oben dagegen
-                    self.ball.pos.y = hindernis.rect.top - 6
-                    self.ball.vel.y = -self.ball.vel.y
-                    self.ball.vel.rotate(random.randrange(-3, 3))
-                    if self.debug:
-                        print("von oben")
-                if self.ball.pos.x - self.ball.vel.x < hindernis.rect.left and self.ball.vel.x > 0: # von links dagegen
-                    self.ball.pos.x = hindernis.rect.left - 6
-                    self.ball.vel.x = -self.ball.vel.x
-                    self.ball.vel.rotate(random.randrange(-3, 3))
-                    if self.debug:
-                        print("von links")
-                elif self.ball.pos.x - self.ball.vel.x > hindernis.rect.right and self.ball.vel.x < 0: # von rechts dagegen
-                    self.ball.pos.x = hindernis.rect.right + 6
-                    self.ball.vel.x = -self.ball.vel.x
-                    self.ball.vel.rotate(random.randrange(-3, 3))
-                    if self.debug:
-                        print("von rechts")
+                # Bewegung des Balls
+                if self.with_hindernissen or hindernis in [self.player0,self.player1]:
+                    # Bewegung ändern     # Um zu verhindern, dass ein Ball Beispielsweise zwischen zwei Hindernissen unedlich ang hin und her fliegt wird die Flugbahn mit einem Zufallswert etwas gedreht
+                    if self.ball.pos.y - self.ball.vel.y > hindernis.rect.bottom and self.ball.vel.y < 0: # von unten dagegen
+                        self.ball.pos.y = hindernis.rect.bottom + 6
+                        self.ball.vel.y = -self.ball.vel.y
+                        self.ball.vel.rotate(random.randrange(-3, 3))
+                        if self.debug:
+                            print("von unten")
+                    elif self.ball.pos.y - self.ball.vel.y < hindernis.rect.top and self.ball.vel.y > 0: # von oben dagegen
+                        self.ball.pos.y = hindernis.rect.top - 6
+                        self.ball.vel.y = -self.ball.vel.y
+                        self.ball.vel.rotate(random.randrange(-3, 3))
+                        if self.debug:
+                            print("von oben")
+                    if self.ball.pos.x - self.ball.vel.x < hindernis.rect.left and self.ball.vel.x > 0: # von links dagegen
+                        self.ball.pos.x = hindernis.rect.left - 6
+                        self.ball.vel.x = -self.ball.vel.x
+                        self.ball.vel.rotate(random.randrange(-3, 3))
+                        if self.debug:
+                            print("von links")
+                    elif self.ball.pos.x - self.ball.vel.x > hindernis.rect.right and self.ball.vel.x < 0: # von rechts dagegen
+                        self.ball.pos.x = hindernis.rect.right + 6
+                        self.ball.vel.x = -self.ball.vel.x
+                        self.ball.vel.rotate(random.randrange(-3, 3))
+                        if self.debug:
+                            print("von rechts")
 
     def draw_display(self):
         # Bildschrim zeichnen

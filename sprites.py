@@ -4,7 +4,7 @@ import random
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, game, player_num, is_computer = False):
-        self._layer = 2
+        self._layer = 1
         self.game = game
         self.player_num = player_num
         self.is_computer = is_computer
@@ -190,7 +190,7 @@ class Ball(pygame.sprite.Sprite):
 
 class Hindernis(pygame.sprite.Sprite):
     def __init__(self, game, pos, size, is_schutz = False, geschützter_spieler = None):
-        self._layer = 2
+        self._layer = 1
         self.game = game
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.Surface(size)
