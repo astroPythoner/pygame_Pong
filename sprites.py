@@ -95,6 +95,8 @@ class Ball(pygame.sprite.Sprite):
                     self.rect.top = self.game.spielfeldy + 9
                     self.pos.y = self.rect.centery
                     self.vel.y = -self.vel.y
+                    # Pong-Sound abspielen
+                    pong_sound.play()
                     # Fliegt der Ball seitlich am Rand kann er dadruch, dass die Spieler sich nur bis zum Spielfeldrandbewegen können, festhängen. Er fliegt daher zur Seite
                     if self.vel.y == 0:
                         if self.game.debug:
@@ -127,6 +129,8 @@ class Ball(pygame.sprite.Sprite):
                     self.rect.bottom = self.game.spielfeldy + self.game.spielfeldhoehe - 8
                     self.pos.y = self.rect.centery
                     self.vel.y = -self.vel.y
+                    # Pong-Sound abspielen
+                    self.game.play_pong_sound()
                     # Fliegt der Ball seitlich am Rand kann er dadruch, dass die Spieler sich nur bis zum Spielfeldrandbewegen können, festhängen. Er fliegt daher zur Seite
                     if self.vel.y == 0:
                         if self.game.debug:
@@ -180,12 +184,10 @@ class Ball(pygame.sprite.Sprite):
     def start_slow_power_up(self):
         self.power_up_schläge = self.game.schläge
         self.is_power_up = True
-        self.image.fill(SLOW_BALL_COLOR)
         self.vel.scale_to_length(3.5)
 
     def end_slow_power_up(self):
         self.is_power_up = False
-        self.image.fill(BALL_COLOR)
         self.vel.scale_to_length(1/8 * self.game.schläge + 5)
 
 class Hindernis(pygame.sprite.Sprite):

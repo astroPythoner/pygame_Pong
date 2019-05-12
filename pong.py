@@ -29,6 +29,11 @@ class Game():
         self.with_moving_hindernisse = True
         self.with_power_ups = True
 
+        # Sounds
+        self.last_pong_sound_time = 0
+        self.last_power_up_sound_time = 0
+        self.sound_delays = 300
+
         # Für den Computerspieler
         self.computer_difficulty = 5
 
@@ -593,6 +598,15 @@ class Game():
 
         self.game_status = NEXT_GAME
 
+    def play_pong_sound(self):
+        if pygame.time.get_ticks() - self.last_pong_sound_time > self.sound_delays:
+            self.last_pong_sound_time = pygame.time.get_ticks()
+            pong_sound.play()
+    def play_powerup_sound(self):
+        if pygame.time.get_ticks() - self.last_power_up_sound_time > self.sound_delays:
+            self.last_power_up_sound_time = pygame.time.get_ticks()
+            power_sound.play()
+
     ########## Hier startet das eigentliche Spiel ##########
     def start_game(self):
         # Multiplayerauswahl
@@ -754,6 +768,9 @@ class Game():
                         self.last_schlag = self.player1
                 # Wude von einem Hindernis abgeprallt überprüfen ob es ein Power-Up Hindernis war
                 elif hindernis.is_power_type != False:
+                    # Power-Up Sound abspielen
+                    if self.ball.pos.y - self.ball.vel.y > hindernis.rect.bottom and self.ball.vel.y < 0 or self.ball.pos.y - self.ball.vel.y < hindernis.rect.top and self.ball.vel.y > 0 or self.ball.pos.x - self.ball.vel.x < hindernis.rect.left and self.ball.vel.x > 0 or self.ball.pos.x - self.ball.vel.x > hindernis.rect.right and self.ball.vel.x < 0:
+                        self.play_powerup_sound()
                     # Dem Spieler das Power up geben
                     if hindernis.is_power_type == LONG_POWER_UP:
                         self.last_schlag.start_long_power_up()
@@ -780,8 +797,10 @@ class Game():
                         # Hindernis nichtmehr als Powerup machenw
                         hindernis.remove_from_power_up()
 
-                # Bewegung des Balls
-                if self.with_hindernissen or hindernis in [self.player0,self.player1]:
+                # Bewegung des Balls und Sound
+                if self.with_hindernissen or hindernis in [self.player0,self.player1] or hindernis.is_schutz:
+                    # Pong-Sound abspielen
+                    self.play_pong_sound()
                     # Bewegung ändern     # Um zu verhindern, dass ein Ball Beispielsweise zwischen zwei Hindernissen unedlich ang hin und her fliegt wird die Flugbahn mit einem Zufallswert etwas gedreht
                     if self.ball.pos.y - self.ball.vel.y > hindernis.rect.bottom and self.ball.vel.y < 0: # von unten dagegen
                         self.ball.pos.y = hindernis.rect.bottom + 6
