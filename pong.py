@@ -135,6 +135,9 @@ class Game():
                     if check_for == X:
                         if joystick.get_X():
                             return True
+                    if check_for == Y:
+                        if joystick.get_Y():
+                            return True
                     if check_for == B:
                         if joystick.get_B():
                             return True
@@ -172,6 +175,9 @@ class Game():
                 if check_for == X:
                     if self.all_joysticks[joystick_num].get_X():
                         return True
+                if check_for == Y:
+                    if self.all_joysticks[joystick_num].get_Y():
+                        return True
                 if check_for == B:
                     if self.all_joysticks[joystick_num].get_B():
                         return True
@@ -206,6 +212,9 @@ class Game():
                         return True
                 if check_for == X:
                     if joystick.get_X():
+                        return True
+                if check_for == Y:
+                    if joystick.get_Y():
                         return True
                 if check_for == B:
                     if joystick.get_B():
@@ -638,8 +647,12 @@ class Game():
                     self.running = False
 
             # Spiel abbrechen
-            if self.check_key_pressed(X):
-                self.make_game_end(None)
+            if not self.multi_on_one:
+                if self.check_key_pressed(X):
+                    self.make_game_end(None)
+            else:
+                if self.check_key_pressed(Y):
+                    self.make_game_end(None)
 
             # Bewegungen berechnen
             self.all_sprites.update()

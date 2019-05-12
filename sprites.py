@@ -30,10 +30,22 @@ class Player(pygame.sprite.Sprite):
         if self.is_computer:
             self.rect.centery = self.game.ball.rect.centery
         else:
-            if self.game.check_key_pressed(MOVE_UP, self.player_num):
-                self.rect.y -= (self.game.spielfeldhoehe / 80) * self.game.time_diff * FPS
-            elif self.game.check_key_pressed(MOVE_DOWN, self.player_num):
-                self.rect.y += (self.game.spielfeldhoehe / 80) * self.game.time_diff * FPS
+            if not self.game.multi_on_one:
+                if self.game.check_key_pressed(MOVE_UP, self.player_num):
+                    self.rect.y -= (self.game.spielfeldhoehe / 80) * self.game.time_diff * FPS
+                elif self.game.check_key_pressed(MOVE_DOWN, self.player_num):
+                    self.rect.y += (self.game.spielfeldhoehe / 80) * self.game.time_diff * FPS
+            else:
+                if self.player_num == 0:
+                    if self.game.check_key_pressed(MOVE_UP, 0):
+                        self.rect.y -= (self.game.spielfeldhoehe / 80) * self.game.time_diff * FPS
+                    elif self.game.check_key_pressed(MOVE_DOWN, 0):
+                        self.rect.y += (self.game.spielfeldhoehe / 80) * self.game.time_diff * FPS
+                elif self.player_num == 1:
+                    if self.game.check_key_pressed(X, 0):
+                        self.rect.y -= (self.game.spielfeldhoehe / 80) * self.game.time_diff * FPS
+                    elif self.game.check_key_pressed(B, 0):
+                        self.rect.y += (self.game.spielfeldhoehe / 80) * self.game.time_diff * FPS
         if self.rect.top < self.game.spielfeldy+8:
             self.rect.top = self.game.spielfeldy+8
         if self.rect.bottom > self.game.spielfeldy + self.game.spielfeldhoehe - 7:
