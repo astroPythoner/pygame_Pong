@@ -1,4 +1,5 @@
 import pygame
+import __init__
 from joystickpins import JoystickPins, KeyboardStick
 from constants import *
 from sprites import *
