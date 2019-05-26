@@ -24,6 +24,8 @@ class Player(pygame.sprite.Sprite):
         # Zeit und Status merken für die Power_ups
         self.long_power_up_schläge = 0
         self.is_long = False
+        # Schutzschild des Spielers nach einsammeln des Power-Ups
+        self.schild = None
 
     def update(self):
         # Bewegen
@@ -196,11 +198,21 @@ class Ball(pygame.sprite.Sprite):
     def start_slow_power_up(self):
         self.power_up_schläge = self.game.schläge
         self.is_power_up = True
-        self.vel.scale_to_length(3.5)
+        if self.vel.length() > 7:
+            self.vel.scale_to_length(1 / 16 * self.game.schläge + 3.5)
+            self.vel.scale_to_length(self.vel.length() * 0.7)
+        else:
+            self.vel.scale_to_length(4)
+
+    def start_fast_power_up(self):
+        self.power_up_schläge = self.game.schläge
+        self.is_power_up = True
+        self.vel.scale_to_length(1 / 16 * self.game.schläge + 3.5)
+        self.vel.scale_to_length(self.vel.length() * 1.3)
 
     def end_slow_power_up(self):
         self.is_power_up = False
-        self.vel.scale_to_length(1/8 * self.game.schläge + 5)
+        self.vel.scale_to_length(1/8 * self.game.schläge + 3.5)
 
 class Hindernis(pygame.sprite.Sprite):
     def __init__(self, game, pos, size, is_schutz = False, geschützter_spieler = None):
@@ -215,6 +227,7 @@ class Hindernis(pygame.sprite.Sprite):
         self.direction = random.choice([MOVE_UP,MOVE_DOWN])
         self.speed = random.randrange(4,8) / 4
         self.is_power_type = False
+        self.good_or_bad = True  # True = good  False = bad
         self.is_schutz = is_schutz
         if self.is_schutz:
             self.geschützter_spieler = geschützter_spieler
@@ -238,20 +251,26 @@ class Hindernis(pygame.sprite.Sprite):
                 self.game.player1_has_schutz = False
             self.kill()
 
-    def make_to_power_up(self, power_up_type):
+    def kill_schutz(self):
+        if self.is_schutz:
+            if self.geschützter_spieler == self.game.player0:
+                self.game.player0_has_schutz = False
+            else:
+                self.game.player1_has_schutz = False
+            self.kill()
+
+    def make_to_power_up(self, power_up_type, good_or_bad):
         self.is_power_type = power_up_type
+        self.good_or_bad = good_or_bad
         # Mit entsprechender Fabre füllen
-        self.image.fill(POWER_UPS[power_up_type])
+        self.image.fill(POWER_UPS[power_up_type][[True,False].index(good_or_bad)])
         # Power-Up Symbol zeichnen
         if power_up_type == LANGSAM_POWER_UP:
             self.image.blit(pygame.transform.scale(LANGSAM_POWER_UP_img, (min(self.image.get_size()), min(self.image.get_size()))), (self.image.get_width()/2 - min(self.image.get_size())/2, self.image.get_height()/2 - min(self.image.get_size())/2));
-            #self.image = pygame.transform.scale(LANGSAM_POWER_UP_img, (min(self.image.get_size()), min(self.image.get_size())))
         if power_up_type == SCHUTZ_POWER_UP:
             self.image.blit(pygame.transform.scale(SCHUTZ_POWER_UP_img, (min(self.image.get_size()), min(self.image.get_size()))), (self.image.get_width()/2 - min(self.image.get_size())/2, self.image.get_height()/2 - min(self.image.get_size())/2));
-            #self.image = pygame.transform.scale(SCHUTZ_POWER_UP_img, (min(self.image.get_size()), min(self.image.get_size())))
         if power_up_type == LONG_POWER_UP:
             self.image.blit(pygame.transform.scale(LONG_POWER_UP_img, (min(self.image.get_size()), min(self.image.get_size()))), (self.image.get_width()/2 - min(self.image.get_size())/2, self.image.get_height()/2 - min(self.image.get_size())/2));
-            #self.image = pygame.transform.scale(LONG_POWER_UP_img, (min(self.image.get_size()), min(self.image.get_size())))
 
     def remove_from_power_up(self):
         self.is_power_type = False

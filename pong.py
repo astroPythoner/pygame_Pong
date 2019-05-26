@@ -46,6 +46,11 @@ class Game():
         self.player0_has_schutz = False
         self.player1_has_schutz = False
 
+        # Damit man Power-Ups nicht mehrfach einsammelt
+        self.collected_long_power_up_in_last_round = False
+        self.collected_schutz_power_up_in_last_round = False
+        self.collected_slow_power_up_in_last_round = False
+
         # Runde und Gewinne beider Seiten
         self.spiel_num = 0
         self.player0_wins = 0
@@ -739,6 +744,9 @@ class Game():
 
     def detect_and_react_collisions(self):
         # Überprüfen ob der Ball irgendwo abprallen soll
+        collected_schutz = False
+        collected_long = False
+        collected_slow = False
         for hindernis in self.alles_abprallende:
             hit = pygame.sprite.collide_rect(self.ball,hindernis)
             if hit:
@@ -750,16 +758,16 @@ class Game():
                     if self.schläge == 0 and self.with_power_ups:
                         if self.with_hindernissen:
                             erstes_hindernis = random.choice(self.hindernisse.sprites())
-                            erstes_hindernis.make_to_power_up(list(POWER_UPS.keys())[0])
+                            erstes_hindernis.make_to_power_up(list(POWER_UPS.keys())[0],bool(random.getrandbits(1)))
                             while True:
                                 zweites_hindernis = random.choice(self.hindernisse.sprites())
                                 if zweites_hindernis != erstes_hindernis:
-                                    zweites_hindernis.make_to_power_up(list(POWER_UPS.keys())[1])
+                                    zweites_hindernis.make_to_power_up(list(POWER_UPS.keys())[1],bool(random.getrandbits(1)))
                                     break
                             while True:
                                 drittes_hindernis = random.choice(self.hindernisse.sprites())
                                 if drittes_hindernis != erstes_hindernis and drittes_hindernis != zweites_hindernis:
-                                    drittes_hindernis.make_to_power_up(list(POWER_UPS.keys())[2])
+                                    drittes_hindernis.make_to_power_up(list(POWER_UPS.keys())[2],bool(random.getrandbits(1)))
                                     break
                         else:
                             for num in range(0, 3):
@@ -768,7 +776,7 @@ class Game():
                                 width = random.randrange(int(self.spielfeldbreite / 9), int(self.spielfeldbreite / 7))
                                 height = random.randrange(int(self.spielfeldhoehe / 9), int(self.spielfeldhoehe / 7))
                                 hindernis = Hindernis(self, (x, y), (width, height))
-                                hindernis.make_to_power_up(list(POWER_UPS.keys())[num])
+                                hindernis.make_to_power_up(list(POWER_UPS.keys())[num],bool(random.getrandbits(1)))
                                 self.hindernisse.add(hindernis)
                                 self.all_sprites.add(hindernis)
                                 self.alles_abprallende.add(hindernis)
@@ -782,34 +790,65 @@ class Game():
                         self.last_schlag = self.player1
                 # Wude von einem Hindernis abgeprallt überprüfen ob es ein Power-Up Hindernis war
                 elif hindernis.is_power_type != False:
+                    hindernis_kopie = hindernis
                     # Power-Up Sound abspielen
                     if self.ball.pos.y - self.ball.vel.y > hindernis.rect.bottom and self.ball.vel.y < 0 or self.ball.pos.y - self.ball.vel.y < hindernis.rect.top and self.ball.vel.y > 0 or self.ball.pos.x - self.ball.vel.x < hindernis.rect.left and self.ball.vel.x > 0 or self.ball.pos.x - self.ball.vel.x > hindernis.rect.right and self.ball.vel.x < 0:
                         self.play_powerup_sound()
                     # Dem Spieler das Power up geben
                     if hindernis.is_power_type == LONG_POWER_UP:
-                        self.last_schlag.start_long_power_up()
-                    elif hindernis.is_power_type == LANGSAM_POWER_UP:
-                        self.ball.start_slow_power_up()
-                    elif hindernis.is_power_type == SCHUTZ_POWER_UP:
-                        if (self.last_schlag == self.player0 and self.player0_has_schutz == False) or (self.last_schlag == self.player1 and self.player1_has_schutz == False):
-                            # Schutzschild erstellen
-                            schutz = Hindernis(self, (int(self.spielfeldx + [50,self.spielfeldbreite-50][[self.player0,self.player1].index(self.last_schlag)]), random.randrange(int(self.spielfeldy + 80), int(self.spielfeldy + self.spielfeldhoehe - 80))), (16, self.spielfeldhoehe/5), is_schutz=True, geschützter_spieler=self.last_schlag)
-                            self.all_sprites.add(schutz)
-                            self.alles_abprallende.add(schutz)
-                            # merken das der Spieler ein Schutzschild hat
-                            if self.last_schlag == self.player0:
-                                self.player0_has_schutz = True
+                        if not self.collected_long_power_up_in_last_round:
+                            if hindernis.good_or_bad:
+                                self.last_schlag.start_long_power_up()
                             else:
-                                self.player1_has_schutz = True
-                    if self.with_hindernissen:
-                        # Ein anderes Hindernis das noch kein PowerUp ist zu dem Power Up machen
-                        while True:
-                            zufälliges_hindernis = random.choice(self.hindernisse.sprites())
-                            if zufälliges_hindernis.is_power_type == False and zufälliges_hindernis != hindernis:
-                                zufälliges_hindernis.make_to_power_up(hindernis.is_power_type)
-                                break
-                        # Hindernis nichtmehr als Powerup machenw
-                        hindernis.remove_from_power_up()
+                                self.last_schlag.end_long_power_up()
+                        collected_long = True
+                    if hindernis.is_power_type == LANGSAM_POWER_UP:
+                        if not self.collected_slow_power_up_in_last_round:
+                            if hindernis.good_or_bad:
+                                self.ball.start_slow_power_up()
+                            else:
+                                self.ball.start_fast_power_up()
+                        collected_slow = True
+                    if hindernis.is_power_type == SCHUTZ_POWER_UP:
+                        if not self.collected_schutz_power_up_in_last_round:
+                            if hindernis.good_or_bad:
+                                if (self.last_schlag == self.player0 and self.player0_has_schutz == False) or (self.last_schlag == self.player1 and self.player1_has_schutz == False):
+                                    # Schutzschild erstellen
+                                    schutz = Hindernis(self, (int(self.spielfeldx + [50,self.spielfeldbreite-50][[self.player0,self.player1].index(self.last_schlag)]), random.randrange(int(self.spielfeldy + 80), int(self.spielfeldy + self.spielfeldhoehe - 80))), (16, self.spielfeldhoehe/5), is_schutz=True, geschützter_spieler=self.last_schlag)
+                                    self.all_sprites.add(schutz)
+                                    self.alles_abprallende.add(schutz)
+                                    # merken das der Spieler ein Schutzschild hat
+                                    if self.last_schlag == self.player0:
+                                        self.player0_has_schutz = True
+                                        self.player0.schild = schutz
+                                    else:
+                                        self.player1_has_schutz = True
+                                        self.player1.schild = schutz
+                            else:
+                                if (self.last_schlag == self.player0 and self.player0_has_schutz == True) or (self.last_schlag == self.player1 and self.player1_has_schutz == True):
+                                    # merken das der Spieler ein Schutzschild hat
+                                    if self.last_schlag == self.player0:
+                                        self.player0_has_schutz = False
+                                        self.player0.schild.kill_schutz()
+                                        self.player0.schild = None
+                                    else:
+                                        self.player1_has_schutz = False
+                                        self.player1.schild.kill_schutz()
+                                        self.player1.schild = None
+                        collected_schutz = True
+                    # Power-Up auf ein anderes Hindernis setzten oder nur zwischen Gut und Schlecht wechseln
+                    if (hindernis_kopie.is_power_type == LONG_POWER_UP and not self.collected_long_power_up_in_last_round) or (hindernis_kopie.is_power_type == LANGSAM_POWER_UP and not self.collected_slow_power_up_in_last_round) or (hindernis_kopie.is_power_type == SCHUTZ_POWER_UP and not self.collected_schutz_power_up_in_last_round):
+                        if self.with_hindernissen:
+                            # Ein anderes Hindernis das noch kein PowerUp ist zu dem Power Up machen
+                            while True:
+                                zufälliges_hindernis = random.choice(self.hindernisse.sprites())
+                                if zufälliges_hindernis.is_power_type == False and zufälliges_hindernis != hindernis:
+                                    zufälliges_hindernis.make_to_power_up(hindernis.is_power_type, bool(random.getrandbits(1)))
+                                    break
+                            # Hindernis nichtmehr als Powerup machenw
+                            hindernis.remove_from_power_up()
+                        else:
+                            hindernis.make_to_power_up(hindernis.is_power_type,not hindernis.good_or_bad)
 
                 # Bewegung des Balls und Sound
                 if self.with_hindernissen or hindernis in [self.player0,self.player1] or hindernis.is_schutz:
@@ -840,6 +879,18 @@ class Game():
                         self.ball.vel = self.ball.vel.rotate(random.randrange(-3,-8,-1))
                         if self.debug:
                             print("von rechts")
+        if collected_schutz:
+            self.collected_schutz_power_up_in_last_round = True
+        else:
+            self.collected_schutz_power_up_in_last_round = False
+        if collected_long:
+            self.collected_long_power_up_in_last_round = True
+        else:
+            self.collected_long_power_up_in_last_round = False
+        if collected_slow:
+            self.collected_slow_power_up_in_last_round = True
+        else:
+            self.collected_slow_power_up_in_last_round = False
 
     def draw_display(self):
         # Bildschrim zeichnen
