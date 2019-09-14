@@ -129,6 +129,9 @@ class Game():
                     if check_for == START:
                         if joystick.get_start():
                             return True
+                    if check_for == SELECT:
+                        if joystick.get_select():
+                            return True
                     if check_for == ALL:
                         if joystick.get_A() or joystick.get_B() or joystick.get_X() or joystick.get_Y() or joystick.get_start() or joystick.get_shoulder_left() or joystick.get_shoulder_right() or joystick.get_axis_left() or joystick.get_axis_right() or joystick.get_axis_up() or joystick.get_axis_down():
                             return True
@@ -165,6 +168,9 @@ class Game():
                         return True
                 if check_for == START:
                     if self.all_joysticks[joystick_num].get_start():
+                        return True
+                if check_for == SELECT:
+                    if self.all_joysticks[joystick_num].get_select():
                         return True
                 if check_for == ALL:
                     if self.all_joysticks[joystick_num].get_A() or self.all_joysticks[joystick_num].get_B() or self.all_joysticks[joystick_num].get_X() or self.all_joysticks[joystick_num].get_Y()\
@@ -206,6 +212,9 @@ class Game():
                         return True
                 if check_for == START:
                     if joystick.get_start():
+                        return True
+                if check_for == SELECT:
+                    if joystick.get_select():
                         return True
                 if check_for == ALL:
                     if joystick.get_A() or joystick.get_B() or joystick.get_X() or joystick.get_Y() or joystick.get_start() or joystick.get_shoulder_left() or joystick.get_shoulder_right() or joystick.get_axis_left() or joystick.get_axis_right() or joystick.get_axis_up() or joystick.get_axis_down():
@@ -593,8 +602,14 @@ class Game():
             # mit Start geht's weiter
             if self.check_key_pressed(START):
                 waiting = False
+            # einstellungen mit x oder y
             if self.check_key_pressed(XY):
                 self.settings(screen)
+            # mit Start geht's weiter
+            if self.check_key_pressed(SELECT):
+                self.player1_wins = 0
+                self.player0_wins = 0
+                self.spiel_num = 0
             screen.fill(BLACK)
             screen.blit(background, background_rect)
             if self.game_status == NEXT_GAME:
@@ -604,12 +619,16 @@ class Game():
                     self.draw_text(surf, "Spieler 1 gewinnt", 50, center_x, y + 70)
                 elif gewonnener_spieler == 1:
                     self.draw_text(surf, "Spieler 2 gewinnt", 50, center_x, y + 70)
+            if self.spiel_num != 0 or self.player0_wins != 0 or self.player1_wins != 0:
+                self.draw_text(surf, "zurücksetzten mit select", 28, center_x, int(HEIGHT*0.9))
             if not self.game_status == BEFORE_FIRST_GAME:
                 self.draw_text(surf, "Start zum Nochmalspielen", 20, center_x, y + 185)
                 self.draw_text(surf, "X/Y für Einstellungen", 20, center_x, y + 215)
             else:
                 self.draw_text(surf, "Start drücken um loszuspielen", 50, center_x, y + 120)
                 self.draw_text(surf, "X/Y oder Pfeiltasten für Einstellungen", 50, center_x, y + 200)
+            self.show_game_info(surf, center_x)
+            pygame.display.flip()
 
         self.game_status = NEXT_GAME
 
