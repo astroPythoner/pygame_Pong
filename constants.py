@@ -10,7 +10,7 @@ FPS = 60
 pygame.init()
 pygame.mixer.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Pong!")
+pygame.display.set_caption("Pong! - v1.0")
 clock = pygame.time.Clock()
 
 # Konstanten für Art des Spielendes und die Tastenarten
