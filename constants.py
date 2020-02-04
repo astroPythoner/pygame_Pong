@@ -105,10 +105,6 @@ def load_graphics_from_file_array(file_array, dir, color_key=None, convert_aplha
 img_dir = path.join(path.dirname(__file__), 'img')
 snd_dir = path.join(path.dirname(__file__), 'snd')
 
-background = load_graphics_from_file_array(["background.png"], img_dir)
-background = pygame.transform.scale(background, (WIDTH, HEIGHT))
-background_rect = background.get_rect()
-
 LANGSAM_POWER_UP_img = load_graphics_from_file_array(["small turtle.png"], img_dir, color_key=BLACK)
 SCHUTZ_POWER_UP_img = load_graphics_from_file_array(["small schild.png"], img_dir, color_key=BLACK)
 LONG_POWER_UP_img = load_graphics_from_file_array(["small pfeile.png"], img_dir, color_key=BLACK)

@@ -1,6 +1,7 @@
 import pygame
 import __init__
 from joystickpins import JoystickPins, KeyboardStick
+import pygame_background
 from constants import *
 from sprites import *
 import time
@@ -9,7 +10,9 @@ class Game():
     def __init__(self):
         self.game_status = START_GAME
         self.running = True
-        screen.blit(background, background_rect)
+        self.background = pygame_background.Background(WIDTH, HEIGHT, pygame.Color(*MAKIERUNGEN), pygame.Color(*SPIELFELD_DARK), max_speed=1.5)
+        self.background.update()
+        screen.blit(self.background.draw(), (0,0))
 
         # Kontroller und Multiplayer
         self.multiplayer = False
@@ -433,6 +436,7 @@ class Game():
                     self.spielfeldbreite = [WIDTH * 5/7, min(WIDTH*5/7,HEIGHT), WIDTH * 5/7            , WIDTH * 5/7    ][selected_colum]
                 if selected_row == 4:
                     self.spielfeld_color = [SPIELFELD_FORREST,SPIELFELD_DARK,SPIELFELD_OLIVE,SPIELFELD_BLACK][selected_colum]
+                    self.background.set_background_color(pygame.Color(*self.spielfeld_color))
                 self.set_spielfeldwerte()
             if self.check_key_pressed(LEFT) and last_switch + 200 < pygame.time.get_ticks():
                 last_switch = pygame.time.get_ticks()
@@ -466,7 +470,8 @@ class Game():
                 return
 
     def show_einstellungen_on_screen(self,surf,selected_row, selected_column):
-        screen.blit(background, background_rect)
+        self.background.update()
+        screen.blit(self.background.draw(), (0, 0))
 
         # Texte
         if not self.multiplayer:
@@ -528,7 +533,8 @@ class Game():
         self.draw_text(surf, "Drücke Start und Select oder Leertaste und Enter zum Beenden", 18, WIDTH / 2, HEIGHT * 4 / 5 + 23)
 
     def show_multi_select_or_joy_select_on_screen(self, surf, calling_reason, selected=None):
-        screen.blit(background, background_rect)
+        self.background.update()
+        screen.blit(self.background.draw(), (0, 0))
 
         # Je nach dem ob es um die Kontrollerauswahl oder die Einstellungen geht ein anderen Text zeigen
         if calling_reason == START_GAME:
@@ -610,8 +616,8 @@ class Game():
                 self.player1_wins = 0
                 self.player0_wins = 0
                 self.spiel_num = 0
-            screen.fill(BLACK)
-            screen.blit(background, background_rect)
+            self.background.update()
+            screen.blit(self.background.draw(), (0, 0))
             if self.game_status == NEXT_GAME:
                 if gewonnener_spieler == None:
                     self.draw_text(surf, "Abgebrochen", 50, center_x, y + 70)
@@ -646,8 +652,8 @@ class Game():
         # Multiplayerauswahl
         self.wait_for_single_multiplayer_selection()
         self.game_status = BEFORE_FIRST_GAME
-        screen.fill(BLACK)
-        screen.blit(background, background_rect)
+        self.background.update()
+        screen.blit(self.background.draw(), (0, 0))
         self.show_end_game_info(screen, WIDTH / 2, 20)
         self.game_status = START_GAME
 
@@ -658,8 +664,8 @@ class Game():
                 self.new()
 
             # Bilschirm leeren
-            screen.fill(BLACK)
-            screen.blit(background, background_rect)
+            self.background.update()
+            screen.blit(self.background.draw(), (0, 0))
 
             # Auf Bildschirmgeschwindigkeit achten
             self.time_diff = clock.tick(FPS) / 1000
@@ -939,7 +945,8 @@ class Game():
     def make_game_end(self, gewonnener_spieler=None):
         self.game_status = NEXT_GAME
         self.spiel_num += 1
-        screen.blit(background, background_rect)
+        self.background.update()
+        screen.blit(self.background.draw(), (0, 0))
         if gewonnener_spieler == 0:
             self.player0_wins += 1
         elif gewonnener_spieler == 1:
