@@ -3,7 +3,7 @@ classical Pong made with pygame
 
 # Ausführen
 ```
-python3 pong.py
+python3 main.py
 ```
 
 # Notwendige Bibliotheken

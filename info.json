@@ -1,0 +1,8 @@
+{
+  "name": "Pong",
+  "description": "Pong wie du es noch nie gesehen hast. PowerUps, die den Ball langsamer machen oder den Spieler vergrößern, bewegende oder stillstehende Hindernisse und vieles mehr erwarten dich bei diesem Pong spiel.",
+  "type": "Pong",
+  "author": "AstroPythoner",
+  "players": "1 to 2",
+  "playable with": ["Controller","Tastatur als Controller"]
+}

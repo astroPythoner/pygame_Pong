@@ -1,6 +1,11 @@
 import pygame
 import __init__
-from joystickpins import JoystickPins, KeyboardStick
+try:
+    from joystickpins import JoystickPins, KeyboardStick
+except Exception:
+    from joystickpins import joystickpins
+    JoystickPins = joystickpins.JoystickPins
+    KeyboardStick = joystickpins.KeyboardStick
 import pygame_background
 from constants import *
 from sprites import *
