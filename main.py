@@ -537,11 +537,16 @@ class Game():
 
         # Ballgeschwindigkeit
         pygame.draw.line(surf,BALL_COLOR,(50,HEIGHT * 2/5 + 225),(WIDTH-50,HEIGHT * 2/5 + 225),2)
-        self.draw_text(surf,"Ballgeschwindigkeit",25,15,HEIGHT*2/5+185,rect_place="oben_links")
+        self.draw_text(surf,"Ballgeschwindigkeit",25,15,HEIGHT*2/5+185,rect_place="oben_links", color=BALL_COLOR)
         if selected_row == 5:
             self.draw_text(surf,str(self.ball_speed),25,50+(self.ball_speed-2.5)*2*((WIDTH-100)/8),HEIGHT * 2/5 + 230, color=TEXT_RED)
         else:
-            self.draw_text(surf,str(self.ball_speed),25,50+(self.ball_speed-2.5)*2*((WIDTH-100)/8),HEIGHT * 2/5 + 230)
+            self.draw_text(surf,str(self.ball_speed),25,50+(self.ball_speed-2.5)*2*((WIDTH-100)/8),HEIGHT * 2/5 + 230, color=BALL_COLOR)
+        for x in [2.5,3,3.5,4,4.5,5,5.5,6,6.5]:
+            if x == self.ball_speed:
+                pygame.draw.circle(surf,TEXT_RED,(int(50+(x-2.5)*2*((WIDTH-100)/8)), int(HEIGHT * 2/5 + 225)), 7)
+            else:
+                pygame.draw.circle(surf,BALL_COLOR,(int(50+(x-2.5)*2*((WIDTH-100)/8)), int(HEIGHT * 2/5 + 225)), 5)
 
         # Texte unten mit Hinweisen zur Bedienung
         self.draw_text(surf, "W/S oder Joystick zum Auswahl ändern", 20, WIDTH / 2, HEIGHT * 3 / 4 + 35)
