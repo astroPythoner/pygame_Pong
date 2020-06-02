@@ -46,8 +46,6 @@ class Game():
         # Für den Computerspieler
         self.computer_difficulty = 5
 
-        # Wie viele Schläge die Powerups aktiv sind
-        self.POWERUP_TIME = 2
         # Merken wer zuletzt geschlagen hat um herauszubekommen wer ein Power-Up bekommt
         self.last_schlag = None
         # Für das Schutz Power Up
@@ -66,6 +64,9 @@ class Game():
 
         # Erreichtes
         self.schläge = 0  # Zählt hoch, wie oft der Ball von den Spielern zurückgeschossen wurde
+
+        # Ballgeschwindigkeit
+        self.ball_speed = 4
 
         # Debug gibt einige Prints aus und setzt an Abprallpunkte einen Sprite
         self.debug = False
@@ -415,8 +416,8 @@ class Game():
             if self.check_key_pressed(MOVE_DOWN)and last_switch + 300 < pygame.time.get_ticks():
                 last_switch = pygame.time.get_ticks()
                 selected_row += 1
-                if selected_row > 4:
-                    selected_row = 4
+                if selected_row > 5:
+                    selected_row = 5
             if self.check_key_pressed(AB) and last_switch + 200 < pygame.time.get_ticks():
                 last_switch = pygame.time.get_ticks()
                 if selected_row == 1:
@@ -449,6 +450,9 @@ class Game():
                     self.computer_difficulty -= 1
                     if self.computer_difficulty < 0:
                         self.computer_difficulty = 0
+                elif selected_row == 5:
+                    self.ball_speed -= 0.5
+                    if self.ball_speed < 2.5: self.ball_speed = 2.5
                 else:
                     selected_colum -= 1
                     if selected_row == 1:
@@ -463,6 +467,9 @@ class Game():
                     self.computer_difficulty += 1
                     if self.computer_difficulty > 10:
                         self.computer_difficulty = 10
+                elif selected_row == 5:
+                    self.ball_speed += 0.5
+                    if self.ball_speed > 6.5: self.ball_speed = 6.5
                 else:
                     selected_colum += 1
                     if selected_row == 1:
@@ -528,14 +535,22 @@ class Game():
             else:
                 self.draw_text(surf, text, 34, WIDTH / 2 + [-300,-100,100,300][num], HEIGHT * 2/5 + 150, color=TEXT_COLOR, rect_place="mitte")
 
-        # Texte unten mit Hinweisen zur Bedienung
-        self.draw_text(surf, "W/S oder Joystick zum Auswahl ändern", 20, WIDTH / 2, HEIGHT * 3 / 4 - 25)
-        if selected_row == 1:
-            self.draw_text(surf, "Pfeiltasten oder A/B zum Auswählen", 20, WIDTH / 2, HEIGHT * 3 / 4)
+        # Ballgeschwindigkeit
+        pygame.draw.line(surf,BALL_COLOR,(50,HEIGHT * 2/5 + 225),(WIDTH-50,HEIGHT * 2/5 + 225),2)
+        self.draw_text(surf,"Ballgeschwindigkeit",25,15,HEIGHT*2/5+185,rect_place="oben_links")
+        if selected_row == 5:
+            self.draw_text(surf,str(self.ball_speed),25,50+(self.ball_speed-2.5)*2*((WIDTH-100)/8),HEIGHT * 2/5 + 230, color=TEXT_RED)
         else:
-            self.draw_text(surf, "A/D oder Joystick zum erhöhen oder verringern", 20, WIDTH / 2, HEIGHT * 3 / 4)
-        self.draw_text(surf, "Drücke Start oder Leertaste zum Starten", 18, WIDTH / 2, HEIGHT * 4 / 5)
-        self.draw_text(surf, "Drücke Start und Select oder Leertaste und Enter zum Beenden", 18, WIDTH / 2, HEIGHT * 4 / 5 + 23)
+            self.draw_text(surf,str(self.ball_speed),25,50+(self.ball_speed-2.5)*2*((WIDTH-100)/8),HEIGHT * 2/5 + 230)
+
+        # Texte unten mit Hinweisen zur Bedienung
+        self.draw_text(surf, "W/S oder Joystick zum Auswahl ändern", 20, WIDTH / 2, HEIGHT * 3 / 4 + 35)
+        if selected_row == 1:
+            self.draw_text(surf, "Pfeiltasten oder A/B zum Auswählen", 20, WIDTH / 2, HEIGHT * 3 / 4 + 60)
+        else:
+            self.draw_text(surf, "A/D oder Joystick zum erhöhen oder verringern", 20, WIDTH / 2, HEIGHT * 3 / 4 + 60)
+        self.draw_text(surf, "Drücke Start oder Leertaste zum Starten", 18, WIDTH / 2, HEIGHT * 4 / 5 + 60)
+        self.draw_text(surf, "Drücke Start und Select oder Leertaste und Enter zum Beenden", 18, WIDTH / 2, HEIGHT * 4 / 5 + 80)
 
     def show_multi_select_or_joy_select_on_screen(self, surf, calling_reason, selected=None):
         self.background.update()
